@@ -35,7 +35,9 @@ add_custom_command(
 # # 定义自定义构建目标：下载到目标单片机 set(OPENOCD_EXECUTABLE
 # "E:/SDK-Win/OpenOCD/bin/openocd.exe") # set(OPENOCD_EXECUTABLE "openocd.exe")
 
-# install(CODE CODE "MESSAGE(\"Flash......\")" CODE "execute_process(COMMAND
-# ${OPENOCD_EXECUTABLE} -f ${PROJECT_SOURCE_DIR}/OpenOCD/openocd.cfg -c
-# \"program ${EXECUTABLE_OUTPUT_PATH}/${EXEC_NAME}.elf verify reset\" -c
-# shutdown)" )
+set(OPENOCD_EXECUTABLE "openocd.exe")
+install(
+  CODE CODE
+  "MESSAGE(\"Flash......\")"
+  CODE "execute_process(COMMAND ${OPENOCD_EXECUTABLE} -f ${PROJECT_SOURCE_DIR}/OpenOCD/openocd.cfg -c \"program ${EXECUTABLE_OUTPUT_PATH}/${EXEC_NAME}.elf verify reset\" -c shutdown)"
+)

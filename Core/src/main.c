@@ -18,10 +18,10 @@ int main(void)
     while(1) {
         /* turn on LED2 */
         gpio_bit_set(GPIOC, GPIO_PIN_6);
-        delay_1ms(100);
+        delay_1ms(500);
 
         /* turn off LED2 */
         gpio_bit_reset(GPIOC, GPIO_PIN_6);
-        delay_1ms(100);
+        delay_1ms(500);
     }
 }

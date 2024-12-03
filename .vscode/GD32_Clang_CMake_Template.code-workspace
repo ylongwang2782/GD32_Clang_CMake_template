@@ -42,7 +42,7 @@
 					"-f",
 					"${workspaceFolder}/OpenOCD/openocd.cfg",
 					"-c",
-					"program ./bin/Debug/GD32_CMake_Example.elf  verify reset",
+					"program ./bin/Debug/GD32_Clang_CMake_Template.elf  verify reset",
 					"-c",
 					"shutdown"
 				],
@@ -64,13 +64,13 @@
 				"options": {
 					"cwd": "${workspaceFolder}"
 				},
-				"label": "jlink烧录",
+				"label": "gdlink烧录",
 				"command": "openocd",
 				"args": [
 					"-f",
-					"${workspaceFolder}/OpenOCD/openocd_jlink.cfg",
+					"${workspaceFolder}/OpenOCD/openocd.cfg",
 					"-c",
-					"program ./bin/Debug/GD32_CMake_Example.elf  verify reset",
+					"program ./bin/Debug/GD32_Clang_CMake_Template.elf  verify reset",
 					"-c",
 					"shutdown"
 				],
@@ -96,13 +96,13 @@
 				"command": "openocd",
 				"args": [
 					"-s",
-					"E:/SDK-Win/OpenOCD/share/openocd/scripts/",
+					"C:/code_configuration/xpack-openocd-0.12.0-4/openocd/scripts/",
 					"-f",
-					"c:/Users/hp/.vscode/extensions/marus25.cortex-debug-1.6.7/support/openocd-helpers.tcl",
+					"C:/Users/wang.yunlong9/.vscode/extensions/marus25.cortex-debug-1.12.1/support/openocd-helpers.tcl",
 					"-f",
-					"interface/cmsis-dap.cfg",
+					"interface/jlink.cfg",
 					"-f",
-					"target/gd32f310.cfg"
+					"target/gd32f4xx_gdlink.cfg"
 				],
 				"presentation": {
 					"echo": true,
@@ -123,7 +123,7 @@
 			{
 				"cwd": "${workspaceRoot}",
 				//可执行文件的位置
-				"executable": "${workspaceRoot}/bin/Debug/GD32_CMake_Example.elf",
+				"executable": "${workspaceRoot}/bin/Debug/GD32_Clang_CMake_Template.elf",
 				"name": "Cortex-Debug",
 				"request": "launch",
 				//标识是一个marus25.cortex-debug插件的调试配置
@@ -131,13 +131,13 @@
 				"servertype": "openocd",
 				//openocd使用的配置文件，我使用的是cmsis-dap调试器，jlink调试器等需要修改
 				"configFiles": [
-					"interface/cmsis-dap.cfg",
-					"target/gd32f310.cfg",
+					"interface/jlink.cfg",
+					"target/gd32f4xx_gdlink.cfg",
 				],
 				//CMSIS-SVD(System View Description)文件路径,里面记录了寄存器的名字与地址，方便调试的时候查看寄存器
-				"svdFile": "${workspaceRoot}/OpenOCD/GD32F3x0.svd",
+				"svdFile": "${workspaceRoot}/OpenOCD/GD32F4xx.svd",
 				"searchDir": [
-					"E:/SDK-Win/OpenOCD/openocd/scripts/"
+					"C:/code_configuration/xpack-openocd-0.12.0-4/openocd/scripts"
 				],
 				"runToEntryPoint": "main",
 				"showDevDebugOutput": "none",
@@ -156,7 +156,7 @@
 			},
 			{
 				"cwd": "${workspaceRoot}",
-				"executable": "${workspaceRoot}/bin/Debug/GD32_CMake_Example.elf",
+				"executable": "${workspaceRoot}/bin/Debug/GD32_Clang_CMake_Template.elf",
 				"name": "jlink debug",
 				"request": "launch",
 				"type": "cortex-debug",
@@ -164,7 +164,7 @@
 				"configFiles": [
 					"${workspaceRoot}/OpenOCD/openocd_jlink.cfg",
 				],
-				"svdFile": "${workspaceRoot}/OpenOCD/GD32F3x0.svd",
+				"svdFile": "${workspaceRoot}/OpenOCD/GD32F4xx.svd",
 				"searchDir": [
 					"E:/SDK-Win/OpenOCD/openocd/scripts/"
 				],

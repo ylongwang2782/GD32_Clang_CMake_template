@@ -19,20 +19,31 @@ compile & build:
 
 ### 需要的软件
 
-- vscode
-[vscode download](https://code.visualstudio.com/Download)
-- cmake
-官网安装
-- ninja
+- [vscode](https://code.visualstudio.com/Download)
+- [cmake](https://cmake.org/download/)
+- [ninja](https://github.com/ninja-build/ninja/releases/tag/v1.12.1)
 - gcc-arm-none-eabi
-[Arm GNU Toolchain Downlaods](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads/13-2-rel1)
-- LLVM
-[LLVM](https://llvm.org/)
+1. 下载[Arm GNU Toolchain Downlaods](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads/13-2-rel1)
+2. 添加环境变量`arm-gnu-toolchain-13.2.Rel1-mingw-w64-i686-arm-none-eabi\bin`
+- [LLVM](https://llvm.org/)
 - clang
-安装`msys64`或者`LLVM`会自带`clang`
+1. 安装`msys64`或者`LLVM`会自带`clang`
+2. 添加环境变量
+- [GD32 Embedded Builder](https://www.gd32mcu.com/cn/download)
+GD32 Embedded Builder非常强大，其中包含了
+1. 交叉编译工具链
+2. .ld文件
+3. .s文件
+4. OpenOCD
+5. OpenOCD会用到的cfg文件
+- openocd-xpack
+1. 先下载[GD32 Embedded Builder](https://www.gd32mcu.com/cn/download)
+2. 添加`EmbeddedBuilder_v1.4.7.26843\Tools\OpenOCD\xpack-openocd-0.11.0-3\bin`到环境变量
 
 以上软件均需要添加到环境变量
 ### 需要的vscode拓展
+
+可以在`vscode`拓展中搜索`@recommended`以便快速安装推荐的拓展
 
 - Clangd
 - Clang-Format
@@ -58,3 +69,10 @@ CompileFlags:
         "-IC:/code_configuration/arm-gnu-toolchain-13.2.Rel1-mingw-w64-i686-arm-none-eabi/arm-none-eabi/include/"
         ]   
 ```
+
+## TODO
+
+- [x] 支持下载
+- [ ] 支持在线调试
+- [ ] 增加`C++`支持
+- [ ] 增加`printf`重定向

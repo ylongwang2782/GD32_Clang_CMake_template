@@ -11,7 +11,8 @@ editor:
 - 使用`clangd`作为编辑器的lsp服务器,实现高效跳转和代码补全，以及更好的静态分析
 
 compile & build:
-- 使用`cmake`作为构建工具
+- 使用`cmake`作为构建系统
+- 使用`ninja`作为构建工具
 - 使用`arm-none-eabi-gcc`作为编译器
 
 ## 环境搭建

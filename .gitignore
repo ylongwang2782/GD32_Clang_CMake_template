@@ -1,7 +1,3 @@
-Keil/slave_mode_output/*
-Keil/slave_mode_listings/*
-Keil/master_mode_output/*
-Keil/master_mode_listings/*
 build*/
 .cache
 bin/

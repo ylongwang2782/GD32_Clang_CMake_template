@@ -5,7 +5,7 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/Drivers Drivers)
 target_include_directories(${EXEC_NAME}_CMSIS PRIVATE .)
 target_include_directories(${EXEC_NAME}_standard_peripherals PRIVATE .)
 
-# 添加静态库 包括 /Drivers/CMSIS 和 /Drivers/GD32F3x0_standard_peripheral 目录下文件编译得到的静态库
+# 添加静态库 包括 /Drivers/CMSIS 和 /Drivers/GD32F4xx_standard_peripheral 目录下文件编译得到的静态库
 target_link_libraries(
   ${EXEC_NAME} ${EXEC_NAME}_CMSIS ${EXEC_NAME}_standard_peripherals
   # ${EXEC_NAME}_RTT

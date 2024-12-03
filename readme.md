@@ -2,7 +2,7 @@
 
 ## Introduction
 
-这是一个使用vscode作为IDE进行GD32嵌入式开发的模板，适合更喜欢使用vscode的开发者。
+这是一个使用`vscode`作为IDE进行GD32嵌入式开发的模板，适合更喜欢使用vscode的开发者。
 目前可以实现通过build生成hex和bin文件。
 
 ## 特点
@@ -20,12 +20,18 @@ compile & build:
 ### 需要的软件
 
 - vscode
+[vscode download](https://code.visualstudio.com/Download)
 - cmake
+官网安装
 - ninja
 - gcc-arm-none-eabi
+[Arm GNU Toolchain Downlaods](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads/13-2-rel1)
 - LLVM
+[LLVM](https://llvm.org/)
 - clang
+安装`msys64`或者`LLVM`会自带`clang`
 
+以上软件均需要添加到环境变量
 ### 需要的vscode拓展
 
 - Clangd
@@ -33,3 +39,22 @@ compile & build:
 - Cmake
 - Cmake Tools
 - CodeLLDB
+
+### 需要更改的配置
+
+#### setting.json
+
+更改`clangd.exe`的地址
+```json
+"clangd.path": "C:/msys64/clang64/bin/clangd.exe"
+```
+
+#### .clangd
+
+需要更改`clangd`的配置文件，添加头文件路径，不然会找不到标准头文件
+```json
+CompileFlags:
+  Add: [
+        "-IC:/code_configuration/arm-gnu-toolchain-13.2.Rel1-mingw-w64-i686-arm-none-eabi/arm-none-eabi/include/"
+        ]   
+```

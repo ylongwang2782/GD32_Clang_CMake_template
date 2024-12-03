@@ -1,0 +1,11 @@
+{
+    "recommendations": [
+        "twxs.cmake",
+        "ms-vscode.cmake-tools",
+        "cheshirekow.cmake-format",
+        "llvm-vs-code-extensions.vscode-clangd",
+        "xaver.clang-format",
+        "marus25.cortex-debug",
+        "usernamehw.errorlens"
+    ]
+}

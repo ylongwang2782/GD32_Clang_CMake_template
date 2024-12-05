@@ -1,15 +1,11 @@
 #include "FreeRTOS.h"
 #include "gd32f4xx.h"
-#include "systick.h"
 #include "task.h"
 
 void vTask1(void *pvParameters);
-
 void vTask2(void *pvParameters);
 
 int main(void) {
-    systick_config();
-
     xTaskCreate(vTask1, "Task 1", 128, NULL, 1, NULL);
     xTaskCreate(vTask2, "Task 2", 128, NULL, 2, NULL);
 

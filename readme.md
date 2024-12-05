@@ -2,7 +2,7 @@
 
 ## Introduction
 
-这是一个使用`vscode`作为IDE进行GD32嵌入式开发的模板，适合更喜欢使用vscode的开发者。
+这是一个完全脱离`keil`使用`vscode`作为IDE进行GD32嵌入式开发的模板，适合更喜欢使用vscode的开发者。
 目前可以实现通过build生成hex和bin文件。
 
 ## 特点
@@ -72,7 +72,8 @@ CompileFlags:
 
 ## TODO
 
-- [x] 支持下载
 - [ ] 支持在线调试
 - [ ] 增加`C++`支持
 - [ ] 增加`printf`重定向
+- [ ] 增加`FreeRTOS`支持
+  - [ ] 增加assert

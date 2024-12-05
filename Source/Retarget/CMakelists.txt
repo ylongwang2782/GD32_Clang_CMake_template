@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.22)
+
+add_library(Retarget INTERFACE ./src/printf.c ./src/scanf.c ./src/syscalls.c)
+
+target_include_directories(Retarget INTERFACE ./inc)
+
+target_compile_definitions(Retarget INTERFACE PRINTF_INCLUDE_CONFIG_H)

@@ -1,8 +1,6 @@
 /*
- * FreeRTOS Kernel <DEVELOPMENT BRANCH>
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- * SPDX-License-Identifier: MIT
+ * FreeRTOS V202212.00
+ * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,33 +25,17 @@
  *
  */
 
-/*******************************************************************************
- * This file provides an example FreeRTOSConfig.h header file, inclusive of an
- * abbreviated explanation of each configuration item.  Online and reference
- * documentation provides more information.
- * https://www.freertos.org/a00110.html
- *
- * Constant values enclosed in square brackets ('[' and ']') must be completed
- * before this file will build.
- *
- * Use the FreeRTOSConfig.h supplied with the RTOS port in use rather than this
- * generic file, if one is available.
- ******************************************************************************/
-
 #ifndef FREERTOS_CONFIG_H
 #define FREERTOS_CONFIG_H
-
-// extern void assert_failed(char *file, uint32_t line);
 
 #if defined(__ICCARM__) || defined(__CC_ARM) || defined(__GNUC__)
 #include <stdint.h>
 extern uint32_t SystemCoreClock;
-/* USER CODE BEGIN 0 */
-extern void configureTimerForRunTimeStats(void);
-extern unsigned long getRunTimeCounterValue(void);
-/* USER CODE END 0 */
 #endif
 
+#define vPortSVCHandler     SVC_Handler
+#define xPortPendSVHandler  PendSV_Handler
+#define xPortSysTickHandler SysTick_Handler
 /******************************************************************************/
 /* Hardware description related definitions. **********************************/
 /******************************************************************************/
@@ -85,12 +67,9 @@ extern unsigned long getRunTimeCounterValue(void);
 /******************************************************************************/
 /*                       调度行为相关定义                                       */
 /******************************************************************************/
-
 /* configTICK_RATE_HZ sets frequency of the tick interrupt in Hz, normally
  * calculated from the configCPU_CLOCK_HZ value. */
 #define configTICK_RATE_HZ 1000
-
-// #define configUSE_16_BIT_TICKS 0
 
 /* Set configUSE_PREEMPTION to 1 to use pre-emptive scheduling.  Set
  * configUSE_PREEMPTION to 0 to use co-operative scheduling.
@@ -295,7 +274,7 @@ extern unsigned long getRunTimeCounterValue(void);
  * memory in the build.  Set to 0 to exclude the ability to create statically
  * allocated objects from the build.  Defaults to 0 if left undefined.  See
  * https://www.freertos.org/Static_Vs_Dynamic_Memory_Allocation.html. */
-#define configSUPPORT_STATIC_ALLOCATION 1
+#define configSUPPORT_STATIC_ALLOCATION 0
 
 /* Set configSUPPORT_DYNAMIC_ALLOCATION to 1 to include FreeRTOS API functions
  * that create FreeRTOS objects (tasks, queues, etc.) using dynamically
@@ -406,10 +385,12 @@ See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
  * application writer needs to provide a clock source if set to 1.  Defaults to
  * 0 if left undefined.  See https://www.freertos.org/rtos-run-time-stats.html.
  */
-#define configGENERATE_RUN_TIME_STATS 1
+#define configGENERATE_RUN_TIME_STATS 0
 
-#define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS configureTimerForRunTimeStats
-#define portGET_RUN_TIME_COUNTER_VALUE getRunTimeCounterValue
+// extern void configureTimerForRunTimeStats(void);
+// extern unsigned long getRunTimeCounterValue(void);
+// #define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS 0
+// #define portGET_RUN_TIME_COUNTER_VALUE 0
 
 /* Set configUSE_TRACE_FACILITY to include additional task structure members
  * are used by trace and visualisation functions and tools.  Set to 0 to exclude
@@ -640,27 +621,6 @@ See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
 #define configENABLE_MVE 1
 
 /******************************************************************************/
-/* ARMv7-M and ARMv8-M port Specific Configuration definitions. ***************/
-/******************************************************************************/
-
-/* Set configCHECK_HANDLER_INSTALLATION to 1 to enable additional asserts to
- * verify that the application has correctly installed FreeRTOS interrupt
- * handlers.
- *
- * An application can install FreeRTOS interrupt handlers in one of the
- * following ways:
- *   1. Direct Routing  -  Install the functions vPortSVCHandler and
- * xPortPendSVHandler for SVC call and PendSV interrupts respectively.
- *   2. Indirect Routing - Install separate handlers for SVC call and PendSV
- *                         interrupts and route program control from those
- * handlers to vPortSVCHandler and xPortPendSVHandler functions. The
- * applications that use Indirect Routing must set
- * configCHECK_HANDLER_INSTALLATION to 0.
- *
- * Defaults to 1 if left undefined. */
-#define configCHECK_HANDLER_INSTALLATION 0
-
-/******************************************************************************/
 /* Definitions that include or exclude functionality. *************************/
 /******************************************************************************/
 
@@ -704,4 +664,5 @@ See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
 #define vPortSVCHandler SVC_Handler
 #define xPortPendSVHandler PendSV_Handler
 #define xPortSysTickHandler SysTick_Handler
+
 #endif /* FREERTOS_CONFIG_H */

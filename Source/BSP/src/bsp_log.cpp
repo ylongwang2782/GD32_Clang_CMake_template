@@ -4,6 +4,6 @@
 #include "printf.h"
 
 
-void _putchar(char character) {
-    usart_data_transmit(USART1, (uint8_t)character);
-}
+// void _putchar(char character) {
+//     usart_data_transmit(USART1, (uint8_t)character);
+// }

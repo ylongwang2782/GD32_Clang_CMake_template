@@ -35,8 +35,6 @@ SerialConfig usart2_config = {.baudrate = 115200,
                               .nvic_irq_sub_priority = 2,
                               .rx_count = 0};
 
-Serial com1(usart1_config);
-
 void Serial::setup() {
     Serial::init();
     Serial::dma_tx_config();

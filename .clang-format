@@ -25,8 +25,9 @@ AlignConsecutiveDeclarations:
   AlignCompound:   false
   AlignFunctionPointers: false
   PadOperators:    false
+# 开启宏定义对齐
 AlignConsecutiveMacros:
-  Enabled:         false
+  Enabled:         true
   AcrossEmptyLines: false
   AcrossComments:  false
   AlignCompound:   false

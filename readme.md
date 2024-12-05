@@ -15,6 +15,9 @@ compile & build:
 - 使用`ninja`作为构建工具
 - 使用`arm-none-eabi-gcc`作为编译器
 
+os:
+- 使用`freertos`作为操作系统
+
 ## 环境搭建
 
 ### 需要的软件
@@ -45,12 +48,6 @@ GD32 Embedded Builder非常强大，其中包含了
 
 可以在`vscode`拓展中搜索`@recommended`以便快速安装推荐的拓展
 
-- Clangd
-- Clang-Format
-- Cmake
-- Cmake Tools
-- CodeLLDB
-
 ### 需要更改的配置
 
 #### setting.json
@@ -60,20 +57,17 @@ GD32 Embedded Builder非常强大，其中包含了
 "clangd.path": "C:/msys64/clang64/bin/clangd.exe"
 ```
 
-#### .clangd
-
-需要更改`clangd`的配置文件，添加头文件路径，不然会找不到标准头文件
+更改clangd的编译器地址
 ```json
-CompileFlags:
-  Add: [
-        "-IC:/code_configuration/arm-gnu-toolchain-13.2.Rel1-mingw-w64-i686-arm-none-eabi/arm-none-eabi/include/"
-        ]   
+"--query-driver=C:/code_configuration/arm-gnu-toolchain-13.2.Rel1-mingw-w64-i686-arm-none-eabi/bin/arm-none-eabi-g++.exe"
 ```
+
+#### FreeRTOS
+
+FreeRTOS系统无需更改，可直接使用，支持c和cpp
 
 ## TODO
 
-- [ ] 支持在线调试
 - [ ] 增加`C++`支持
+- [ ] 支持在线调试
 - [ ] 增加`printf`重定向
-- [ ] 增加`FreeRTOS`支持
-  - [ ] 增加assert

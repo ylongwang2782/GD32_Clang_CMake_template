@@ -7,7 +7,7 @@ set(CMAKE_C_EXTENSIONS ON)
 
 # Define the build type
 if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Debug")
+  set(CMAKE_BUILD_TYPE "Debug")
 endif()
 
 # Include toolchain file
@@ -21,13 +21,12 @@ enable_language(ASM C CXX)
 project(GD32_Clang_Cmake_template VERSION 0.1.0)
 
 add_compile_options(
-    -Wno-unused-parameter # 忽略未使用的参数警告
-    -Wno-pedantic # 忽略严格模式的警告
-    -Wno-unused-variable
-)
+  -Wno-unused-parameter # 忽略未使用的参数警告
+  -Wno-pedantic # 忽略严格模式的警告
+  -Wno-unused-variable)
 
-add_definitions(
-    -DGD32F470
-)
+add_link_options(-Wl,--unresolved-symbols=ignore-in-object-files)
+
+add_definitions(-DGD32F470)
 
 add_subdirectory(Source)

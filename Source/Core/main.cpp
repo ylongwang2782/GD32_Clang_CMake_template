@@ -1,9 +1,13 @@
+#include <string>
 #include "FreeRTOS.h"
 #include "gd32f4xx.h"
 #include "task.h"
+#include "bsp_uart.h"
 
 void vTask1(void *pvParameters);
 void vTask2(void *pvParameters);
+extern SerialConfig usart1_config;
+Serial usart1(usart1_config);
 
 int main(void) {
     xTaskCreate(vTask1, "Task 1", 128, NULL, 1, NULL);
@@ -16,6 +20,9 @@ int main(void) {
 
 void vTask1(void *pvParameters) {
     for (;;) {
+        printf("Task 1 running\r\n");
+        std::string str = "hello world";
+        usart1.dma_tx((uint8_t*)str.c_str(), str.length() );
         vTaskDelay(500);
     }
 }

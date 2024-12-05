@@ -1,9 +1,6 @@
 {
     "code-runner.saveFileBeforeRun": true,
     "C_Cpp.intelliSenseEngine": "disabled",
-    "clangd.fallbackFlags": [
-        
-    ],
     "clangd.arguments": [
         "--clang-tidy",
         // compelie_commands.json 文件的目录位置(相对于工作区，由于 CMake 生成的该文件默认在 build 文件夹中，故设置为 build)
@@ -15,10 +12,13 @@
         // 建议排序模型
         "--ranking-model=heuristics",
         // 同时开启的任务数量
-        "-j=12"
+        "-j=12",
+        // 指定编译器的路径
+        "--query-driver=C:/code_configuration/arm-gnu-toolchain-13.2.Rel1-mingw-w64-i686-arm-none-eabi/bin/arm-none-eabi-g++.exe"
     ],
     "clangd.path": "C:/msys64/clang64/bin/clangd.exe",
     "todo-tree.tree.showBadges": false,
     // 成功配置后，将 compile_commands.json 复制到此位置
     "cmake.copyCompileCommands": "",
+    "marscode.chatLanguage": "cn",
 }

@@ -1,7 +1,7 @@
 // #include "cstdio.h"
 #include "gd32f4xx.h"
 #include "gd32f4xx_dma.h"
-
+#include <string>
 #define ARRAYNUM(arr_name) (uint32_t)(sizeof(arr_name) / sizeof(*(arr_name)))
 #define com_idle_rx_size 256
 #define DMA_RX_BUFFER_SIZE 1024
@@ -30,6 +30,7 @@ class Serial {
     void dma_tx(uint8_t *data, uint16_t len);
     void data_send(uint8_t *data, uint16_t len);
     uint8_t rxbuffer[DMA_RX_BUFFER_SIZE];
+    void sendString(const std::string &str);
 
    private:
     const SerialConfig &config;

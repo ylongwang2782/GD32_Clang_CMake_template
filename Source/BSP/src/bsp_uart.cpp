@@ -132,6 +132,15 @@ void Serial::idle_dma_rx_config() {
     usart_interrupt_enable(config.usart_periph, USART_INT_IDLE);
 }
 
+void Serial::sendString(const std::string &str) {
+    // 获取 std::string 的数据指针和长度
+    const uint8_t *data = reinterpret_cast<const uint8_t *>(str.data());
+    uint16_t len = static_cast<uint16_t>(str.size());
+
+    // 调用 dma_tx 发送数据
+    dma_tx(const_cast<uint8_t *>(data), len); // const_cast 去除 const 性
+}
+
 void handle_usart_interrupt(SerialConfig *config) {
     if (RESET !=
         usart_interrupt_flag_get(config->usart_periph, USART_INT_FLAG_IDLE)) {
@@ -154,9 +163,9 @@ void handle_usart_interrupt(SerialConfig *config) {
 void USART1_IRQHandler(void) { handle_usart_interrupt(&usart1_config); }
 void USART2_IRQHandler(void) { handle_usart_interrupt(&usart2_config); }
 
-int fputc(int ch, FILE *f) {
-    usart_data_transmit(USART1, (uint8_t)ch);
-    while (RESET == usart_flag_get(USART1, USART_FLAG_TBE)) {
-    }
-    return ch;
-}
+// int fputc(int ch, FILE *f) {
+//     usart_data_transmit(USART1, (uint8_t)ch);
+//     while (RESET == usart_flag_get(USART1, USART_FLAG_TBE)) {
+//     }
+//     return ch;
+// }

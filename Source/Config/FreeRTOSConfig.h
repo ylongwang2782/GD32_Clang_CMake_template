@@ -351,7 +351,7 @@ See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
  * function for any set to 1.  See https://www.freertos.org/a00016.html. */
 #define configUSE_IDLE_HOOK 0
 #define configUSE_TICK_HOOK 0
-#define configUSE_MALLOC_FAILED_HOOK 1
+#define configUSE_MALLOC_FAILED_HOOK 0
 #define configUSE_DAEMON_TASK_STARTUP_HOOK 0
 
 /* Set configUSE_SB_COMPLETED_CALLBACK to 1 to have send and receive completed
@@ -374,7 +374,7 @@ See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
  * configCHECK_FOR_STACK_OVERFLOW is set to 1. See
  * https://www.freertos.org/Stacks-and-stack-overflow-checking.html  Defaults to
  * 0 if left undefined. */
-#define configCHECK_FOR_STACK_OVERFLOW 2
+#define configCHECK_FOR_STACK_OVERFLOW 0
 
 /******************************************************************************/
 /*                  运行时间和任务统计信息收集相关的定义                            */

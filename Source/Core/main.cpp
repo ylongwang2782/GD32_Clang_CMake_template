@@ -22,7 +22,7 @@ extern "C" {
 #endif
 
 void vTask1(void *pvParameters);
-void vTask2(void *pvParameters);
+void led_task(void *pvParameters);
 extern SerialConfig usart1_config;
 
 LED led0(RCU_GPIOC, GPIOC, GPIO_PIN_6);
@@ -30,8 +30,9 @@ LED led0(RCU_GPIOC, GPIOC, GPIO_PIN_6);
 int main(void) {
     Serial usart1(usart1_config);
     UIDReader &uid = UIDReader::getInstance();
+    LOGF("Read uid success!\n");
     xTaskCreate(vTask1, "Task 1", 128, NULL, 1, NULL);
-    xTaskCreate(vTask2, "Task 2", 128, NULL, 2, NULL);
+    xTaskCreate(led_task, "Task 2", 128, NULL, 2, NULL);
     vTaskStartScheduler();
     for (;;);
 }
@@ -42,7 +43,7 @@ void vTask1(void *pvParameters) {
     }
 }
 
-void vTask2(void *pvParameters) {
+void led_task(void *pvParameters) {
     for (;;) {
         led0.toggle();
         vTaskDelay(500);

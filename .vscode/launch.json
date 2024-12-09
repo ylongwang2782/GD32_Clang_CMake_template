@@ -5,12 +5,38 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "lldb",
+            "cwd": "${workspaceRoot}",
+            //可执行文件的位置
+            "executable": "${workspaceRoot}/bin/Debug/GD32_Clang_CMake_Template_0.1.0.elf",
+            "name": "Cortex-Debug",
             "request": "launch",
-            "name": "Debug",
-            "program": "C:\\msys64\\clang64\\bin\\clang++.exe",
-            "args": [],
-            "cwd": "${workspaceFolder}"
+            //标识是一个marus25.cortex-debug插件的调试配置
+            "type": "cortex-debug",
+            "servertype": "openocd",
+            //openocd 使用的配置文件，我使用的是cmsis-dap调试器，jlink调试器等需要修改
+            "configFiles": [
+                "interface/cmsis-dap.cfg",
+                "target/gd32f4xx.cfg",
+            ],
+            //CMSIS-SVD(System View Description) 文件路径,里面记录了寄存器的名字与地址，方便调试的时候查看寄存器
+            "svdFile": "${workspaceRoot}/OpenOCD/GD32F4xx.svd",
+            "searchDir": [
+                "C:/code_configuration/EmbeddedBuilder_v1.4.7.26843/Tools/OpenOCD/xpack-openocd-0.11.0-3/scripts/"
+            ],
+            "runToEntryPoint": "main",
+            "showDevDebugOutput": "none",
+            "rttConfig": {
+                "enabled": true,
+                "polling_interval": 1,
+                "address": "auto",
+                "decoders": [
+                    {
+                        "label": "",
+                        "port": 0,
+                        "type": "console"
+                    },
+                ]
+            }
         }
     ]
 }

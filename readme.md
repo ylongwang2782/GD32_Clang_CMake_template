@@ -62,6 +62,20 @@ GD32 Embedded Builder非常强大，其中包含了
 "--query-driver=C:/code_configuration/arm-gnu-toolchain-13.2.Rel1-mingw-w64-i686-arm-none-eabi/bin/arm-none-eabi-g++.exe"
 ```
 
+#### lauch.json
+
+修改以下文件地址
+```json
+"configFiles": [
+    "interface/cmsis-dap.cfg",
+    "target/gd32f4xx.cfg",
+],
+"svdFile": "${workspaceRoot}/OpenOCD/GD32F4xx.svd",
+"searchDir": [
+    "C:/code_configuration/EmbeddedBuilder_v1.4.7.26843/Tools/OpenOCD/xpack-openocd-0.11.0-3/scripts/"
+],
+```
+
 #### FreeRTOS
 
 FreeRTOS系统无需更改，可直接使用，支持c和cpp
@@ -69,5 +83,3 @@ FreeRTOS系统无需更改，可直接使用，支持c和cpp
 ## TODO
 
 - [ ] 增加log功能
-- [ ] 支持在线调试
-- [ ] 修复printf

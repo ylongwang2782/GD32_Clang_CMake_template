@@ -13,7 +13,7 @@
         "--ranking-model=heuristics",
         // 同时开启的任务数量
         "-j=12",
-        // 指定编译器的路径
+        // 指定编译器的位置
         "--query-driver=C:/code_configuration/arm-gnu-toolchain-13.2.Rel1-mingw-w64-i686-arm-none-eabi/bin/arm-none-eabi-g++.exe"
     ],
     "clangd.path": "C:/msys64/clang64/bin/clangd.exe",

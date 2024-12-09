@@ -1,10 +1,4 @@
-#include <stdint.h>
-
-#include <array>
-#include <cmath>
-#include <cstdint>
 #include <cstdio>
-#include <string>
 
 #include "FreeRTOS.h"
 #include "bsp_led.h"
@@ -16,7 +10,6 @@
 extern "C" {
 #endif
 
-#include "gd32f4xx.h"
 #ifdef __cplusplus
 }
 #endif

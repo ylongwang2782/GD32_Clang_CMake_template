@@ -1,11 +1,9 @@
 // #include "gd32f4xx.h"
 // #include "FreeRTOS.h"
 // #include "task.h"
-
+// #include "bsp_log.h"
 // #define IDLE_TASK_STACK_SIZE 32
 // #define TIMER_TASK_STACK_SIZE 50
-
-
 
 // static void delay()
 // {
@@ -13,6 +11,7 @@
 // 		;
 // 	}
 // }
+
 // /**
 //  * @brief 提供Idle任务的内存分配。
 //  * 本函数用于在FreeRTOS操作系统中为Idle任务（也称为系统空闲任务）提供必要的内存资源，
@@ -76,7 +75,7 @@
 // {
 // 	while (1) {
 // 		delay();
-// 		// ERROR("Stack overflow: %s\n", pcTaskName);
+// 		ERRF("Stack overflow: %s\n", pcTaskName);
 // 	}
 // }
 
@@ -84,6 +83,6 @@
 // {
 // 	while (1) {
 // 		delay();
-// 		// ERROR("Malloc failed");
+// 		ERRF("Malloc failed");
 // 	}
 // }

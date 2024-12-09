@@ -27,6 +27,6 @@ add_compile_options(
 
 add_link_options(-Wl,--unresolved-symbols=ignore-in-object-files)
 
-add_definitions(-DGD32F470)
+add_definitions(-DGD32F470 -DGCC)
 
 add_subdirectory(Source)

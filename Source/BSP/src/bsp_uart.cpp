@@ -157,16 +157,7 @@ void handle_usart_interrupt(SerialConfig *config) {
         dma_channel_enable(config->dma_periph, config->dma_rx_channel);
     }
 }
-
+extern "C" {
 void USART1_IRQHandler(void) { handle_usart_interrupt(&usart1_config); }
 void USART2_IRQHandler(void) { handle_usart_interrupt(&usart2_config); }
-
-extern "C" {
-int _write(int fd, char *pBuffer, int size) {
-    for (int i = 0; i < size; i++) {
-        while (RESET == usart_flag_get(USART1, USART_FLAG_TBE));
-        usart_data_transmit(USART1, (uint8_t)pBuffer[i]);
-    }
-    return size;
-}
 }

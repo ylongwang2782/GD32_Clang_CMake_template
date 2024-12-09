@@ -3,14 +3,16 @@
 ## Introduction
 
 这是一个完全脱离`keil`使用`vscode`作为IDE进行GD32嵌入式开发的模板，适合更喜欢使用vscode的开发者。
-目前可以实现通过build生成hex和bin文件。
+- `Cmake:build`：构建固件
+- `Cmake:install`：烧录固件到设备
+- `Cortex-Debug`：对设备进行调试
 
 ## 特点
 
-editor:
+Editor:
 - 使用`clangd`作为编辑器的lsp服务器,实现高效跳转和代码补全，以及更好的静态分析
 
-compile & build:
+Compile & Build:
 - 使用`cmake`作为构建系统
 - 使用`ninja`作为构建工具
 - 使用`arm-none-eabi-gcc`作为编译器
@@ -83,3 +85,4 @@ FreeRTOS系统无需更改，可直接使用，支持c和cpp
 ## TODO
 
 - [ ] 增加log功能
+- [ ] Keil project support

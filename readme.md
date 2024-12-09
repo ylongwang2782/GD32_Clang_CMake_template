@@ -86,3 +86,4 @@ FreeRTOS系统无需更改，可直接使用，支持c和cpp
 
 - [ ] 增加log功能
 - [ ] Keil project support
+- [ ] add tool into files

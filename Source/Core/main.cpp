@@ -1,6 +1,7 @@
 #include <stdint.h>
 
 #include <array>
+#include <cmath>
 #include <cstdint>
 #include <cstdio>
 #include <string>
@@ -29,8 +30,6 @@ LED led0(RCU_GPIOC, GPIOC, GPIO_PIN_6);
 int main(void) {
     Serial usart1(usart1_config);
     UIDReader &uid = UIDReader::getInstance();
-    printf("Hello World!\n");
-
     xTaskCreate(vTask1, "Task 1", 128, NULL, 1, NULL);
     xTaskCreate(vTask2, "Task 2", 128, NULL, 2, NULL);
     vTaskStartScheduler();

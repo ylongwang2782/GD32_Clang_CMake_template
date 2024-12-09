@@ -1,5 +1,4 @@
 #include "bsp_uart.h"
-#include <cstdio>
 
 SerialConfig usart1_config = {.baudrate = 115200,
                               .gpio_port = GPIOD,
@@ -138,7 +137,7 @@ void Serial::sendString(const std::string &str) {
     uint16_t len = static_cast<uint16_t>(str.size());
 
     // 调用 dma_tx 发送数据
-    dma_tx(const_cast<uint8_t *>(data), len); // const_cast 去除 const 性
+    dma_tx(const_cast<uint8_t *>(data), len);    // const_cast 去除 const 性
 }
 
 void handle_usart_interrupt(SerialConfig *config) {
@@ -147,9 +146,9 @@ void handle_usart_interrupt(SerialConfig *config) {
         /* clear IDLE flag */
         usart_data_receive(config->usart_periph);
         /* number of data received */
-        config->rx_count =
-            DMA_RX_BUFFER_SIZE - (dma_transfer_number_get(config->dma_periph,
-                                           config->dma_rx_channel));
+        config->rx_count = DMA_RX_BUFFER_SIZE -
+                           (dma_transfer_number_get(config->dma_periph,
+                                                    config->dma_rx_channel));
         dma_channel_disable(config->dma_periph, config->dma_rx_channel);
         dma_flag_clear(config->dma_periph, config->dma_rx_channel,
                        DMA_FLAG_FTF);
@@ -159,13 +158,15 @@ void handle_usart_interrupt(SerialConfig *config) {
     }
 }
 
-
 void USART1_IRQHandler(void) { handle_usart_interrupt(&usart1_config); }
 void USART2_IRQHandler(void) { handle_usart_interrupt(&usart2_config); }
 
-// int fputc(int ch, FILE *f) {
-//     usart_data_transmit(USART1, (uint8_t)ch);
-//     while (RESET == usart_flag_get(USART1, USART_FLAG_TBE)) {
-//     }
-//     return ch;
-// }
+extern "C" {
+int _write(int fd, char *pBuffer, int size) {
+    for (int i = 0; i < size; i++) {
+        while (RESET == usart_flag_get(USART1, USART_FLAG_TBE));
+        usart_data_transmit(USART1, (uint8_t)pBuffer[i]);
+    }
+    return size;
+}
+}

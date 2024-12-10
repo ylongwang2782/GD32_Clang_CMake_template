@@ -27,7 +27,6 @@ os:
 - [vscode](https://code.visualstudio.com/Download)
 - [cmake](https://cmake.org/download/)
 - [ninja](https://github.com/ninja-build/ninja/releases/tag/v1.12.1)
-- gcc-arm-none-eabi
 1. 下载[Arm GNU Toolchain Downlaods](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads/13-2-rel1)
 2. 添加环境变量`arm-gnu-toolchain-13.2.Rel1-mingw-w64-i686-arm-none-eabi\bin`
 - [LLVM](https://llvm.org/)
@@ -41,6 +40,7 @@ GD32 Embedded Builder非常强大，其中包含了
 3. .s文件
 4. OpenOCD
 5. OpenOCD会用到的cfg文件
+- gcc-arm-none-eabi
 - openocd-xpack
 1. 先下载[GD32 Embedded Builder](https://www.gd32mcu.com/cn/download)
 2. 添加`EmbeddedBuilder_v1.4.7.26843\Tools\OpenOCD\xpack-openocd-0.11.0-3\bin`到环境变量

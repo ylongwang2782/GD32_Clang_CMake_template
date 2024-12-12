@@ -18,7 +18,7 @@ void vTask1(void *pvParameters);
 void led_task(void *pvParameters);
 extern SerialConfig usart1_config;
 
-Logger logger;
+Logger log;
 
 LED led0(RCU_GPIOC, GPIOC, GPIO_PIN_6);
 void LogTask(void *pvParameters);
@@ -33,7 +33,7 @@ int main(void) {
     size_t freeHeap = xPortGetFreeHeapSize();
     printf("Free heap size: %u bytes\n", freeHeap);
     // FIXME 修复队列大小不能扩大的问题
-    logger.logQueue = xQueueCreate(10, 64);
+    log.logQueue = xQueueCreate(10, 64);
     xTaskCreate(LogTask, "LogTask", 1024, nullptr, 3, nullptr);
 
     vTaskStartScheduler();
@@ -48,7 +48,11 @@ void vTask1(void *pvParameters) {
 
 void led_task(void *pvParameters) {
     for (;;) {
-        logger.log(LogLevel::INFO, "led_task!");
+        // log.d( "led_task!");
+        log.log(LogLevel::DEBUGL, "led_task!");
+        log.i( "led_task!");
+        log.w( "led_task!");
+        log.e( "led_task!");
         led0.toggle();
         vTaskDelay(500);
     }
@@ -57,7 +61,7 @@ void led_task(void *pvParameters) {
 void LogTask(void *pvParameters) {
     char buffer[30];
     for (;;) {
-        if (xQueueReceive(logger.logQueue, buffer, portMAX_DELAY)) {
+        if (xQueueReceive(log.logQueue, buffer, portMAX_DELAY)) {
             // TODO 更换为dma发送
             for (const char *p = buffer; *p; ++p) {
                 while (RESET == usart_flag_get(USART1, USART_FLAG_TBE));

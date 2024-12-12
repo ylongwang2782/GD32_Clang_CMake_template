@@ -2,10 +2,13 @@
 
 void Logger::log(LogLevel level, const char *format, ...) {
     // 定义日志级别的字符串表示
-    const char *levelStr[] = {"DEBUG", "INFO", "WARN", "ERROR"};
+    static const char *levelStr[] = {"DEBUG", "INFO", "WARN", "ERROR"};
 
-    // 缓存区，用于存储格式化后的日志
-    char buffer[30];
+    // 缓冲区大小
+    constexpr size_t bufferSize = 30;
+
+    // 缓存区，用于存储格式化后的日志内容
+    char buffer[bufferSize];
 
     // 格式化日志内容
     va_list args;
@@ -13,13 +16,22 @@ void Logger::log(LogLevel level, const char *format, ...) {
     vsnprintf(buffer, sizeof(buffer), format, args);
     va_end(args);
 
-    // 添加级别前缀并输出日志
-    char finalMessage[30];
+    // 添加级别前缀
+    char finalMessage[bufferSize];
     snprintf(finalMessage, sizeof(finalMessage), "[%s] %s\n",
              levelStr[static_cast<int>(level)], buffer);
 
+    // 输出日志
     output(level, finalMessage);
 }
+
+void Logger::d(const char *format, ...) { log(LogLevel::DEBUGL, format); }
+
+void Logger::i(const char *format, ...) { log(LogLevel::INFO, format); }
+
+void Logger::w(const char *format, ...) { log(LogLevel::WARN, format); }
+
+void Logger::e(const char *format, ...) { log(LogLevel::ERROR, format); }
 
 void Logger::output(LogLevel level, const char *message) {
     // 将日志消息添加到队列中

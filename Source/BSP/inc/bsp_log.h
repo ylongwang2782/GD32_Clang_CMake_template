@@ -11,7 +11,7 @@ extern "C" {
 #include "task.h"
 }
 
-#define LOG_QUEUE_SIZE 50
+#define LOG_QUEUE_SIZE 64
 
 #define LOGF(format, ...)  (void)printf("[LOG]: " format, ##__VA_ARGS__)
 #define INFOF(format, ...) (void)printf("[INFO]: " format, ##__VA_ARGS__)
@@ -23,6 +23,11 @@ enum class LogLevel { DEBUGL, INFO, WARN, ERROR };
 class Logger {
    public:
     void log(LogLevel level, const char *format, ...);
+    void d(const char *format, ...);
+    void i(const char *format, ...);
+    void w(const char *format, ...);
+    void e(const char *format, ...);
+
     QueueHandle_t logQueue;
 
    private:

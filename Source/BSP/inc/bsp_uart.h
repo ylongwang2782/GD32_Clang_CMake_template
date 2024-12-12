@@ -1,9 +1,12 @@
 // #include "cstdio.h"
+extern "C" {
+
 #include "gd32f4xx.h"
 #include "gd32f4xx_dma.h"
+}
 #include <string>
 #define ARRAYNUM(arr_name) (uint32_t)(sizeof(arr_name) / sizeof(*(arr_name)))
-#define com_idle_rx_size 256
+#define com_idle_rx_size   256
 #define DMA_RX_BUFFER_SIZE 1024
 typedef struct {
     uint32_t baudrate;                  // 波特率

@@ -32,7 +32,7 @@
 #include <stdint.h>
 extern uint32_t SystemCoreClock;
 #endif
-
+#include <stdio.h>
 #define vPortSVCHandler     SVC_Handler
 #define xPortPendSVHandler  PendSV_Handler
 #define xPortSysTickHandler SysTick_Handler
@@ -65,7 +65,7 @@ extern uint32_t SystemCoreClock;
  */
 
 /******************************************************************************/
-/*                       调度行为相关定义                                       */
+/*                       调度行为相关定义 */
 /******************************************************************************/
 /* configTICK_RATE_HZ sets frequency of the tick interrupt in Hz, normally
  * calculated from the configCPU_CLOCK_HZ value. */
@@ -116,7 +116,7 @@ extern uint32_t SystemCoreClock;
  * (in words, not in bytes!).  The kernel does not use this constant for any
  * other purpose.  Demo applications use the constant to make the demos somewhat
  * portable across hardware architectures. */
-#define configMINIMAL_STACK_SIZE 64
+#define configMINIMAL_STACK_SIZE 128
 
 /* configMAX_TASK_NAME_LEN sets the maximum length (in characters) of a task's
  * human readable name.  Includes the NULL terminator. */
@@ -235,7 +235,7 @@ extern uint32_t SystemCoreClock;
  * task.  See
  * https://www.freertos.org/RTOS-software-timer-service-daemon-task.html Only
  * used if configUSE_TIMERS is set to 1. */
-#define configTIMER_TASK_STACK_DEPTH configMINIMAL_STACK_SIZE
+#define configTIMER_TASK_STACK_DEPTH (configMINIMAL_STACK_SIZE * 2)
 
 /* configTIMER_QUEUE_LENGTH sets the length of the queue (the number of discrete
  * items the queue can hold) used to send commands to the timer task.  See
@@ -288,16 +288,17 @@ extern uint32_t SystemCoreClock;
  * or heap_4.c are included in the build.  This value is defaulted to 4096 bytes
  * but it must be tailored to each application.  Note the heap will appear in
  * the .bss section.  See https://www.freertos.org/a00111.html. */
-#define configTOTAL_HEAP_SIZE (1024 * 3)
+#define configTOTAL_HEAP_SIZE (1024 * 30)
 
 /* Set configAPPLICATION_ALLOCATED_HEAP to 1 to have the application allocate
  * the array used as the FreeRTOS heap.  Set to 0 to have the linker allocate
  * the array used as the FreeRTOS heap.  Defaults to 0 if left undefined. */
 #define configAPPLICATION_ALLOCATED_HEAP 0
 
-/* 将 configSTACK_ALLOCATION_FROM_SEPARATE_HEAP 设置为 1，以便从除 FreeRTOS 堆之外的其他地方分配任务栈。
- * 这在您希望确保栈存储在快速内存中时很有用。 设置为 0 则让任务栈来自标准的 FreeRTOS 堆。
- * 如果设置为 1，应用程序开发者必须提供 pvPortMallocStack() 和 vPortFreeStack() 的实现。
+/* 将 configSTACK_ALLOCATION_FROM_SEPARATE_HEAP 设置为 1，以便从除 FreeRTOS
+ * 堆之外的其他地方分配任务栈。 这在您希望确保栈存储在快速内存中时很有用。
+ * 设置为 0 则让任务栈来自标准的 FreeRTOS 堆。 如果设置为
+ * 1，应用程序开发者必须提供 pvPortMallocStack() 和 vPortFreeStack() 的实现。
  * 如果未定义，默认值为 0。 */
 #define configSTACK_ALLOCATION_FROM_SEPARATE_HEAP 0
 
@@ -331,27 +332,27 @@ PRIORITY THAN THIS! (higher priorities are lower numeric values. */
 /* Interrupt priorities used by the kernel port layer itself.  These are generic
 to all Cortex-M ports, and do not rely on any particular library functions. */
 #define configKERNEL_INTERRUPT_PRIORITY \
-	(configLIBRARY_LOWEST_INTERRUPT_PRIORITY << (8 - configPRIO_BITS))
+    (configLIBRARY_LOWEST_INTERRUPT_PRIORITY << (8 - configPRIO_BITS))
 /* !!!! configMAX_SYSCALL_INTERRUPT_PRIORITY must not be set to zero !!!!
 See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
 #define configMAX_SYSCALL_INTERRUPT_PRIORITY \
-	(configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY << (8 - configPRIO_BITS))
+    (configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY << (8 - configPRIO_BITS))
 
 /* Another name for configMAX_SYSCALL_INTERRUPT_PRIORITY - the name used depends
  * on the FreeRTOS port. */
 #define configMAX_API_CALL_INTERRUPT_PRIORITY 0
 
 /******************************************************************************/
-/*                            钩子和回调函数的相关定义。                          */
+/*                            钩子和回调函数的相关定义。 */
 /******************************************************************************/
 
 /* Set the following configUSE_* constants to 1 to include the named hook
  * functionality in the build.  Set to 0 to exclude the hook functionality from
  * the build.  The application writer is responsible for providing the hook
  * function for any set to 1.  See https://www.freertos.org/a00016.html. */
-#define configUSE_IDLE_HOOK 0
-#define configUSE_TICK_HOOK 0
-#define configUSE_MALLOC_FAILED_HOOK 0
+#define configUSE_IDLE_HOOK                0
+#define configUSE_TICK_HOOK                0
+#define configUSE_MALLOC_FAILED_HOOK       0
 #define configUSE_DAEMON_TASK_STARTUP_HOOK 0
 
 /* Set configUSE_SB_COMPLETED_CALLBACK to 1 to have send and receive completed
@@ -377,7 +378,7 @@ See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
 #define configCHECK_FOR_STACK_OVERFLOW 0
 
 /******************************************************************************/
-/*                  运行时间和任务统计信息收集相关的定义                            */
+/*                  运行时间和任务统计信息收集相关的定义 */
 /******************************************************************************/
 
 /* Set configGENERATE_RUN_TIME_STATS to 1 to have FreeRTOS collect data on the
@@ -432,11 +433,11 @@ See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
  * number of the failing assert (for example, "vAssertCalled( __FILE__, __LINE__
  * )" or it can simple disable interrupts and sit in a loop to halt all
  * execution on the failing line for viewing in a debugger. */
-// #define configASSERT(x)                            \
-// 	if ((x) == 0) {                            \
-// 		taskDISABLE_INTERRUPTS();          \
-// 		assert_failed((char *)__FILE__, __LINE__); \
-// 	}
+#define configASSERT(x)           \
+    if ((x) == 0) {               \
+        taskDISABLE_INTERRUPTS(); \
+        for (;;);                 \
+    }
 
 /******************************************************************************/
 /* FreeRTOS MPU specific definitions. *****************************************/
@@ -626,11 +627,11 @@ See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
 
 /* Set the following configUSE_* constants to 1 to include the named feature in
  * the build, or 0 to exclude the named feature from the build. */
-#define configUSE_TASK_NOTIFICATIONS 1
-#define configUSE_MUTEXES 1
-#define configUSE_RECURSIVE_MUTEXES 1
-#define configUSE_COUNTING_SEMAPHORES 1
-#define configUSE_QUEUE_SETS 0
+#define configUSE_TASK_NOTIFICATIONS   1
+#define configUSE_MUTEXES              1
+#define configUSE_RECURSIVE_MUTEXES    1
+#define configUSE_COUNTING_SEMAPHORES  1
+#define configUSE_QUEUE_SETS           0
 #define configUSE_APPLICATION_TASK_TAG 0
 
 /* USE_POSIX_ERRNO enables the task global FreeRTOS_errno variable which will
@@ -640,29 +641,29 @@ See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
 /* Set the following INCLUDE_* constants to 1 to incldue the named API function,
  * or 0 to exclude the named API function.  Most linkers will remove unused
  * functions even when the constant is 1. */
-#define INCLUDE_vTaskPrioritySet 1
-#define INCLUDE_uxTaskPriorityGet 1
-#define INCLUDE_vTaskDelete 1
-#define INCLUDE_vTaskSuspend 1
-#define INCLUDE_xResumeFromISR 1
-#define INCLUDE_vTaskDelayUntil 1
-#define INCLUDE_vTaskDelay 1
-#define INCLUDE_xTaskGetSchedulerState 1
-#define INCLUDE_xTaskGetCurrentTaskHandle 1
+#define INCLUDE_vTaskPrioritySet            1
+#define INCLUDE_uxTaskPriorityGet           1
+#define INCLUDE_vTaskDelete                 1
+#define INCLUDE_vTaskSuspend                1
+#define INCLUDE_xResumeFromISR              1
+#define INCLUDE_vTaskDelayUntil             1
+#define INCLUDE_vTaskDelay                  1
+#define INCLUDE_xTaskGetSchedulerState      1
+#define INCLUDE_xTaskGetCurrentTaskHandle   1
 #define INCLUDE_uxTaskGetStackHighWaterMark 0
-#define INCLUDE_xTaskGetIdleTaskHandle 0
-#define INCLUDE_eTaskGetState 0
-#define INCLUDE_xEventGroupSetBitFromISR 1
-#define INCLUDE_xTimerPendFunctionCall 0
-#define INCLUDE_xTaskAbortDelay 0
-#define INCLUDE_xTaskGetHandle 0
-#define INCLUDE_xTaskResumeFromISR 1
+#define INCLUDE_xTaskGetIdleTaskHandle      0
+#define INCLUDE_eTaskGetState               0
+#define INCLUDE_xEventGroupSetBitFromISR    1
+#define INCLUDE_xTimerPendFunctionCall      0
+#define INCLUDE_xTaskAbortDelay             0
+#define INCLUDE_xTaskGetHandle              0
+#define INCLUDE_xTaskResumeFromISR          1
 
 /**
  * map the FreeRTOS function names to their CMSIS equivalents
-*/
-#define vPortSVCHandler SVC_Handler
-#define xPortPendSVHandler PendSV_Handler
+ */
+#define vPortSVCHandler     SVC_Handler
+#define xPortPendSVHandler  PendSV_Handler
 #define xPortSysTickHandler SysTick_Handler
 
 #endif /* FREERTOS_CONFIG_H */

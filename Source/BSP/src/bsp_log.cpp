@@ -25,6 +25,8 @@ void Logger::log(LogLevel level, const char *format, ...) {
     output(level, finalMessage);
 }
 
+void Logger::v(const char *format, ...) { log(LogLevel::VERBOSE, format); }
+
 void Logger::d(const char *format, ...) { log(LogLevel::DEBUGL, format); }
 
 void Logger::i(const char *format, ...) { log(LogLevel::INFO, format); }

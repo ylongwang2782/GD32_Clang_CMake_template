@@ -2,7 +2,7 @@
 
 void Logger::log(LogLevel level, const char *format, ...) {
     // 定义日志级别的字符串表示
-    static const char *levelStr[] = {"DEBUG", "INFO", "WARN", "ERROR"};
+    static const char *levelStr[] = {"VERBOSE","DEBUG", "INFO", "WARN", "ERROR"};
 
     // 缓冲区大小
     constexpr size_t bufferSize = 30;

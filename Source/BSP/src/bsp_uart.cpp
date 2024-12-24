@@ -13,8 +13,8 @@ SerialConfig usart1_config = {.baudrate = 115200,
                               .dma_tx_channel = DMA_CH6,
                               .dma_rx_channel = DMA_CH5,
                               .nvic_irq = USART1_IRQn,
-                              .nvic_irq_pre_priority = 1,
-                              .nvic_irq_sub_priority = 1,
+                              .nvic_irq_pre_priority = 6,
+                              .nvic_irq_sub_priority = 0,
                               .rx_count = 0};
 
 SerialConfig usart2_config = {.baudrate = 115200,
@@ -30,8 +30,8 @@ SerialConfig usart2_config = {.baudrate = 115200,
                               .dma_tx_channel = DMA_CH3,
                               .dma_rx_channel = DMA_CH1,
                               .nvic_irq = USART2_IRQn,
-                              .nvic_irq_pre_priority = 1,
-                              .nvic_irq_sub_priority = 2,
+                              .nvic_irq_pre_priority = 7,
+                              .nvic_irq_sub_priority = 0,
                               .rx_count = 0};
 
 void Serial::setup() {

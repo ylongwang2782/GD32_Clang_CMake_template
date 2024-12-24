@@ -14,33 +14,36 @@ extern "C" {
 }
 #endif
 
-void vTask1(void *pvParameters);
+void uartDMATask(void *pvParameters);
 void led_task(void *pvParameters);
+void LogTask(void *pvParameters);
+
 extern SerialConfig usart1_config;
 
 Logger Log;
 
 LED led0(RCU_GPIOC, GPIOC, GPIO_PIN_6);
-void LogTask(void *pvParameters);
 
 int main(void) {
-    Serial usart1(usart1_config);
-    UIDReader &uid = UIDReader::getInstance();
-    xTaskCreate(vTask1, "Task 1", 128, NULL, 1, NULL);
-    xTaskCreate(led_task, "led task", 128, NULL, 2, NULL);
+    nvic_priority_group_set(NVIC_PRIGROUP_PRE4_SUB0);
 
-    // 最大存储10条日志，每条最多300字节
-    size_t freeHeap = xPortGetFreeHeapSize();
-    printf("Free heap size: %u bytes\n", freeHeap);
+    Serial usart1(usart1_config);
+
+    UIDReader &uid = UIDReader::getInstance();
+
     // FIXME 修复队列大小不能扩大的问题
-    Log.logQueue = xQueueCreate(10, 64);
-    xTaskCreate(LogTask, "LogTask", 1024, nullptr, 3, nullptr);
+    Log.logQueue = xQueueCreate(10, LOG_QUEUE_SIZE);
+
+    xTaskCreate(uartDMATask, "Task 1", 1024, NULL, 1, NULL);
+    xTaskCreate(led_task, "led task", 256, NULL, 2, NULL);
+    xTaskCreate(LogTask, "LogTask", 1024, NULL, 3, NULL);
 
     vTaskStartScheduler();
     for (;;);
 }
 
-void vTask1(void *pvParameters) {
+void uartDMATask(void *pvParameters) {
+    // Log.v("task1!");
     for (;;) {
         vTaskDelay(500);
     }
@@ -49,16 +52,13 @@ void vTask1(void *pvParameters) {
 void led_task(void *pvParameters) {
     for (;;) {
         Log.d("led_task!");
-        Log.i("led_task!");
-        Log.w("led_task!");
-        Log.e("led_task!");
         led0.toggle();
         vTaskDelay(500);
     }
 }
 
 void LogTask(void *pvParameters) {
-    char buffer[30];
+    char buffer[LOG_QUEUE_SIZE + 8];
     for (;;) {
         if (xQueueReceive(Log.logQueue, buffer, portMAX_DELAY)) {
             // TODO 更换为dma发送

@@ -23,7 +23,7 @@ extern SemaphoreHandle_t dmaCompleteSemaphore;
 
 Logger Log;
 
-LED led0(RCU_GPIOC, GPIOC, GPIO_PIN_6);
+LED led0(GPIOC, GPIO_PIN_6);
 
 // 创建 USART_DMA_Handler 实例
 extern UasrtConfig usart1_info;

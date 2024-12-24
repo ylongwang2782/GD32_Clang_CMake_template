@@ -1,12 +1,12 @@
 /**
  * @file led.h
  * @author wang.yunlong (wang.yunlong9@byd.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2024-10-22
- * 
+ *
  * @copyright Copyright (c) 2024
- * 
+ *
  */
 #ifdef __cplusplus
 extern "C" {
@@ -18,14 +18,13 @@ extern "C" {
 }
 #endif
 
-class LED
-{
+class LED {
    private:
     uint32_t port;
     uint32_t pin;
 
    public:
-    LED(rcu_periph_enum rcc, uint32_t port, uint32_t pin);
+    LED(uint32_t port, uint32_t pin);
     ~LED();
     void on(void);
     void off(void);

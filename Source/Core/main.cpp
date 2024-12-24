@@ -14,50 +14,59 @@ extern "C" {
 }
 #endif
 
-void uartDMATask(void *pvParameters);
-void led_task(void *pvParameters);
-void LogTask(void *pvParameters);
+void usartDMATask(void *pvParameters);
+void ledBlinkTask(void *pvParameters);
+void logTask(void *pvParameters);
 
-extern SerialConfig usart1_config;
+// 全局信号量
+extern SemaphoreHandle_t dmaCompleteSemaphore;
 
 Logger Log;
 
 LED led0(RCU_GPIOC, GPIOC, GPIO_PIN_6);
 
+// 创建 USART_DMA_Handler 实例
+extern UasrtConfig usart1_info;
+USART_DMA_Handler usartDMA = USART_DMA_Handler(usart1_info);
+
 int main(void) {
     nvic_priority_group_set(NVIC_PRIGROUP_PRE4_SUB0);
-
-    Serial usart1(usart1_config);
 
     UIDReader &uid = UIDReader::getInstance();
 
     // FIXME 修复队列大小不能扩大的问题
     Log.logQueue = xQueueCreate(10, LOG_QUEUE_SIZE);
 
-    xTaskCreate(uartDMATask, "Task 1", 1024, NULL, 1, NULL);
-    xTaskCreate(led_task, "led task", 256, NULL, 2, NULL);
-    xTaskCreate(LogTask, "LogTask", 1024, NULL, 3, NULL);
+    xTaskCreate(usartDMATask, "usartDMATask", 256, NULL, 1, NULL);
+    xTaskCreate(ledBlinkTask, "ledBlinkTask", 256, NULL, 2, NULL);
+    xTaskCreate(logTask, "logTask", 1024, NULL, 3, NULL);
 
     vTaskStartScheduler();
     for (;;);
 }
 
-void uartDMATask(void *pvParameters) {
-    // Log.v("task1!");
+void usartDMATask(void *pvParameters) {
+    // 创建信号量
+    dmaCompleteSemaphore = xSemaphoreCreateBinary();
+    // Log.d("Usart DMA task start.");
+    USART_DMA_Handler *uartDMA = static_cast<USART_DMA_Handler *>(pvParameters);
     for (;;) {
-        vTaskDelay(500);
+        // 等待 DMA 完成信号
+        if (xSemaphoreTake(dmaCompleteSemaphore, portMAX_DELAY) == pdPASS) {
+            Log.d("Usart recv.");
+        }
     }
 }
 
-void led_task(void *pvParameters) {
+void ledBlinkTask(void *pvParameters) {
     for (;;) {
-        Log.d("led_task!");
+        Log.d("ledBlinkTask!");
         led0.toggle();
         vTaskDelay(500);
     }
 }
 
-void LogTask(void *pvParameters) {
+void logTask(void *pvParameters) {
     char buffer[LOG_QUEUE_SIZE + 8];
     for (;;) {
         if (xQueueReceive(Log.logQueue, buffer, portMAX_DELAY)) {

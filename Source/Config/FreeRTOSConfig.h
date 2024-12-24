@@ -36,6 +36,8 @@ extern uint32_t SystemCoreClock;
 #define vPortSVCHandler     SVC_Handler
 #define xPortPendSVHandler  PendSV_Handler
 #define xPortSysTickHandler SysTick_Handler
+
+extern void vAssertCalled(const char *file, int line);
 /******************************************************************************/
 /* Hardware description related definitions. **********************************/
 /******************************************************************************/
@@ -433,12 +435,7 @@ See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
  * number of the failing assert (for example, "vAssertCalled( __FILE__, __LINE__
  * )" or it can simple disable interrupts and sit in a loop to halt all
  * execution on the failing line for viewing in a debugger. */
-#define configASSERT(x)           \
-    if ((x) == 0) {               \
-        taskDISABLE_INTERRUPTS(); \
-        for (;;);                 \
-    }
-
+#define configASSERT(x) if ((x) == 0) vAssertCalled(__FILE__, __LINE__)
 /******************************************************************************/
 /* FreeRTOS MPU specific definitions. *****************************************/
 /******************************************************************************/

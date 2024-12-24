@@ -61,7 +61,7 @@ GD32 Embedded Builder非常强大，其中包含了
 
 更改clangd的编译器地址
 ```json
-"--query-driver=C:/code_configuration/arm-gnu-toolchain-13.2.Rel1-mingw-w64-i686-arm-none-eabi/bin/arm-none-eabi-g++.exe"
+"--query-driver=C:/code_configuration/EmbeddedBuilder_v1.4.7.26843/Tools/GNU Tools ARM Embedded/xpack-arm-none-eabi-gcc/9.2.1-1.1/bin/arm-none-eabi-g++.exe"
 ```
 
 #### lauch.json
@@ -84,5 +84,4 @@ FreeRTOS系统无需更改，可直接使用，支持c和cpp
 
 ## TODO
 
-- [ ] 增加log功能
-- [ ] 修复断言
+- [ ]考虑增加环境库

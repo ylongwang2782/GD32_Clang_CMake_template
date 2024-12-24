@@ -59,8 +59,11 @@ GD32 Embedded Builder非常强大，其中包含了
 ```json
   {
     "name": "GD32F4xx_none_compiler",
-    "toolchainFile": "C:\\code_project\\DRAFT\\GD32_Clang_Cmake_template\\cmake\\arm-none-eabi-gcc.cmake",
-    "isTrusted": true
+    "toolchainFile": "D:\\project\\GD32_Clang_CMake_template\\CMake\\arm-none-eabi-gcc.cmake",
+    "isTrusted": true,
+    "preferredGenerator": {
+      "name": "MinGW Makefiles"
+    }
   }
 ```
 

@@ -52,6 +52,20 @@ GD32 Embedded Builder非常强大，其中包含了
 
 ### 需要更改的配置
 
+#### cmake-tools-kits.json
+
+`Edit User-Local Cmake Kits`中添加
+
+```json
+  {
+    "name": "GD32F4xx_none_compiler",
+    "toolchainFile": "C:\\code_project\\DRAFT\\GD32_Clang_Cmake_template\\cmake\\arm-none-eabi-gcc.cmake",
+    "isTrusted": true
+  }
+```
+
+其中toolchainFile更改为工程下的`.cmake`文件地址
+
 #### setting.json
 
 更改`clangd.exe`的地址

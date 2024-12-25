@@ -26,24 +26,16 @@ os:
 
 - [vscode](https://code.visualstudio.com/Download)
 - [cmake](https://cmake.org/download/)
+1. 添加环境变量`cmake\bin`
 - [ninja](https://github.com/ninja-build/ninja/releases/tag/v1.12.1)
-1. 下载[Arm GNU Toolchain Downlaods](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads/13-2-rel1)
-2. 添加环境变量`arm-gnu-toolchain-13.2.Rel1-mingw-w64-i686-arm-none-eabi\bin`
-- [LLVM](https://llvm.org/)
-- clang
-1. 安装`msys64`或者`LLVM`会自带`clang`
-2. 添加环境变量
+1. 添加环境变量`ninja\`
 - [GD32 Embedded Builder](https://www.gd32mcu.com/cn/download)
-GD32 Embedded Builder非常强大，其中包含了
-1. 交叉编译工具链
-2. .ld文件
-3. .s文件
-4. OpenOCD
-5. OpenOCD会用到的cfg文件
-- gcc-arm-none-eabi
-- openocd-xpack
-1. 先下载[GD32 Embedded Builder](https://www.gd32mcu.com/cn/download)
-2. 添加`EmbeddedBuilder_v1.4.7.26843\Tools\OpenOCD\xpack-openocd-0.11.0-3\bin`到环境变量
+1. 添加环境变量`EmbeddedBuilder_v1.4.7.26843\Tools\OpenOCD\xpack-openocd-0.11.0-3\bin`
+2. 添加环境变量`EmbeddedBuilder_v1.4.7.26843\Tools\GNU Tools ARM Embedded\xpack-arm-none-eabi-gcc\9.2.1-1.1\bin`
+
+可选安装项：
+- clang(optional)
+- [LLVM](https://llvm.org/)(optional）
 
 以上软件均需要添加到环境变量
 ### 需要的vscode拓展
@@ -67,7 +59,7 @@ GD32 Embedded Builder非常强大，其中包含了
   }
 ```
 
-其中toolchainFile更改为工程下的`.cmake`文件地址
+其中toolchainFile更改为工程下的`.cmake`文件地址（应该可以使用相对地址）
 
 #### setting.json
 

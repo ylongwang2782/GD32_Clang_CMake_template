@@ -19,23 +19,6 @@ UasrtConfig usart1_info = {.baudrate = 115200,
                               .nvic_irq_sub_priority = 0,
                               .rx_count = 0};
 
-UasrtConfig uart1_config = {.baudrate = 115200,
-                             .gpio_port = GPIOD,
-                             .tx_pin = GPIO_PIN_5,
-                             .rx_pin = GPIO_PIN_6,
-                             .usart_periph = USART1,
-                             .usart_clk = RCU_USART1,
-                             .usart_port_clk = RCU_GPIOD,
-                             .gpio_af = GPIO_AF_7,
-                             .rcu_dma_periph = RCU_DMA0,
-                             .dma_periph = DMA0,
-                             .dma_tx_channel = DMA_CH6,
-                             .dma_rx_channel = DMA_CH5,
-                             .nvic_irq = USART1_IRQn,
-                             .nvic_irq_pre_priority = 1,
-                             .nvic_irq_sub_priority = 1,
-                             .rx_count = 0};
-
 UasrtConfig usart2_config = {.baudrate = 115200,
                               .gpio_port = GPIOB,
                               .tx_pin = GPIO_PIN_10,
@@ -104,6 +87,16 @@ void USART_DMA_Handler::dma_tx_config() {
                                      DMA_SUBPERI4);
     dma_channel_disable(config.dma_periph, config.dma_tx_channel);
     usart_dma_transmit_config(config.usart_periph, USART_TRANSMIT_DMA_ENABLE);
+}
+
+void USART_DMA_Handler::dma_tx(uint8_t *data, uint16_t len) {
+    dma_channel_disable(config.dma_periph, config.dma_tx_channel);
+    dma_flag_clear(config.dma_periph, config.dma_tx_channel, DMA_FLAG_FTF);
+    dma_memory_address_config(config.dma_periph, config.dma_tx_channel,
+                              DMA_MEMORY_0, (uintptr_t)data);
+    dma_transfer_number_config(config.dma_periph, config.dma_tx_channel, len);
+    dma_channel_enable(config.dma_periph, config.dma_tx_channel);
+    while (RESET == usart_flag_get(config.usart_periph, USART_FLAG_TC));
 }
 
 void USART_DMA_Handler::idle_dma_rx_config() {

@@ -39,6 +39,7 @@ class USART_DMA_Handler {
     USART_DMA_Handler(UasrtConfig &config) : config(config) { setup(); }
     uint8_t rxbuffer[DMA_RX_BUFFER_SIZE];
     uint8_t DMA_RX_Buffer[DMA_RX_BUFFER_SIZE];
+    void dma_tx(uint8_t *data, uint16_t len);
 
    private:
     // 初始化 DMA

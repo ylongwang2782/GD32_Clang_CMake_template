@@ -1,5 +1,12 @@
 {
     "code-runner.saveFileBeforeRun": true,
+    "cmake.generator": "Ninja", //Unix Makefiles
+    "cmake.configureArgs": [
+        "-DCMAKE_TOOLCHAIN_FILE=cmake/arm-none-eabi-gcc.cmake"
+    ],
+    "cmake.saveBeforeBuild": true,
+    "cmake.buildBeforeRun": true,
+    "cmake.parallelJobs": 12,
     "C_Cpp.intelliSenseEngine": "disabled",
     "clangd.arguments": [
         "--clang-tidy",
@@ -13,12 +20,10 @@
         "--ranking-model=heuristics",
         // 同时开启的任务数量
         "-j=12",
-        // 指定编译器的位置
-        "--query-driver=C:/code_configuration/EmbeddedBuilder_v1.4.7.26843/Tools/GNU Tools ARM Embedded/xpack-arm-none-eabi-gcc/9.2.1-1.1/bin/arm-none-eabi-g++.exe"
+        // 指定编译器的位置，必须使用带源文件头文件的编译器地址，不然会提示找不到头文件
+        "--query-driver=${env:ARM_TOOLCHAIN_GPP}"
     ],
-    "clangd.path": "C:/msys64/clang64/bin/clangd.exe",
+    "clangd.path": "${env:CLANGD_PATH}",
     "todo-tree.tree.showBadges": false,
-    // 成功配置后，将 compile_commands.json 复制到此位置
-    "cmake.copyCompileCommands": "",
     "marscode.chatLanguage": "cn",
 }

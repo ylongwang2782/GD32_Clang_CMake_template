@@ -8,9 +8,7 @@ set(CMAKE_C_COMPILER_ID GNU)
 set(CMAKE_CXX_COMPILER_ID GNU)
 
 # 查找工具链
-set(TOOLCHAIN_PATH
-    "C:/code_configuration/EmbeddedBuilder_v1.4.7.26843/Tools/GNU Tools ARM Embedded/xpack-arm-none-eabi-gcc/9.2.1-1.1"
-)
+set(TOOLCHAIN_PATH $ENV{TOOLCHAIN_PATH})
 set(TOOLCHAIN_PREFIX arm-none-eabi-)
 
 list(APPEND CMAKE_PREFIX_PATH "${TOOLCHAIN_PATH}/bin")

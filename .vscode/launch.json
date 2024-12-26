@@ -21,7 +21,7 @@
             //CMSIS-SVD(System View Description) 文件路径,里面记录了寄存器的名字与地址，方便调试的时候查看寄存器
             "svdFile": "${workspaceRoot}/OpenOCD/GD32F4xx.svd",
             "searchDir": [
-                "C:/code_configuration/EmbeddedBuilder_v1.4.7.26843/Tools/OpenOCD/xpack-openocd-0.11.0-3/scripts/"
+                "${env:OPENOCD_SCRIPTS_PATH}"
             ],
             "runToEntryPoint": "main",
             "showDevDebugOutput": "none",

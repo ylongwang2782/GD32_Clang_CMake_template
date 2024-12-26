@@ -22,6 +22,25 @@ os:
 
 ## 环境搭建
 
+### 配置环境变量
+
+针对不同平台不同设备，工具链地址不同，因此需要根据不同平台不同设备配置环境变量，将以下变量以及对应的地址添加到环境变量中
+
+1. ARM_TOOLCHAIN_GPP
+2. CLANGD_PATH
+3. CROSS_COMPILE_TOOLCHAIN
+4. OPENOCD_SCRIPTS_PATH
+
+
+例如windows下环境变量为
+
+```bash
+set ARM_TOOLCHAIN_GPP=C:/code_configuration/arm-gnu-toolchain-13.2.Rel1-mingw-w64-i686-arm-none-eabi/bin/arm-none-eabi-g++.exe
+set CLANGD_PATH=C:/msys64/clang64/bin/clangd.exe
+set CROSS_COMPILE_TOOLCHAIN=C:/code_configuration/EmbeddedBuilder_v1.4.7.26843/Tools/GNU Tools ARM Embedded/xpack-arm-none-eabi-gcc/9.2.1-1.1
+set OPENOCD_SCRIPTS_PATH=C:/code_configuration/EmbeddedBuilder_v1.4.7.26843/Tools/OpenOCD/xpack-openocd-0.11.0-3/scripts/
+```
+
 ### 需要的软件
 
 - [vscode](https://code.visualstudio.com/Download)
@@ -61,32 +80,6 @@ os:
 
 其中toolchainFile更改为工程下的`.cmake`文件地址（应该可以使用相对地址）
 
-#### setting.json
-
-更改`clangd.exe`的地址
-```json
-"clangd.path": "C:/msys64/clang64/bin/clangd.exe"
-```
-
-更改clangd的编译器地址
-```json
-"--query-driver=C:/code_configuration/EmbeddedBuilder_v1.4.7.26843/Tools/GNU Tools ARM Embedded/xpack-arm-none-eabi-gcc/9.2.1-1.1/bin/arm-none-eabi-g++.exe"
-```
-
-#### lauch.json
-
-修改以下文件地址
-```json
-"configFiles": [
-    "interface/cmsis-dap.cfg",
-    "target/gd32f4xx.cfg",
-],
-"svdFile": "${workspaceRoot}/OpenOCD/GD32F4xx.svd",
-"searchDir": [
-    "C:/code_configuration/EmbeddedBuilder_v1.4.7.26843/Tools/OpenOCD/xpack-openocd-0.11.0-3/scripts/"
-],
-```
-
 #### FreeRTOS
 
 FreeRTOS系统无需更改，可直接使用，支持c和cpp
@@ -94,3 +87,4 @@ FreeRTOS系统无需更改，可直接使用，支持c和cpp
 ## TODO
 
 - [ ]考虑增加环境库
+- [ ]如何实现跨系统兼容

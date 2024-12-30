@@ -2,5 +2,7 @@ build*/
 .cache
 bin/
 project/Objects/
-project/
+project/Listings/
+project/MDK_PROJ.uvoptx
+project/MDK_PROJ.uvguix.*
 tool/

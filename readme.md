@@ -65,4 +65,8 @@ set OPENOCD_SCRIPTS_PATH=C:/code_configuration/EmbeddedBuilder_v1.4.7.26843/Tool
 
 在`vscode`中选择`Select a Kit`,选择`Unspecified`
 
+### 配置Clang Format
+
+安装Clang-Format拓展，将clang-format.exe的`绝对路径`添加到环境变量以及拓展设置项"clang-format.executable"内，目录路径不宜过长
+
 ## TODO

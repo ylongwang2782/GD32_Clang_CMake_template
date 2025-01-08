@@ -22,6 +22,45 @@ os:
 
 ## 环境搭建
 
+### Windows
+
+### Ubuntu
+
+- Ninja
+1. `sudo apt update`
+2. `sudo apt install ninja-build`
+3. `ninja --version`
+
+- Cmake
+1. `sudo apt update`
+2. `sudo apt install cmake`
+3. `cmake --version`
+
+- gcc-arm-none-eabi
+1. `sudo apt update`
+2. `sudo apt install gcc-arm-none-eabi`
+3. `arm-none-eabi-gcc --version`
+
+- clang
+1. `sudo apt install clang clang-tools`
+
+- clangd
+1. `sudo apt install clangd`
+
+- clang-format
+1. `sudo apt install clang-format`
+
+- openocd
+1. 需要[自行编译安装最新版的openocd](https://blog.csdn.net/qq_39765790/article/details/133470373)
+
+- 一键安装指令
+```bash
+sudo apt update
+sudo apt install ninja-build cmake clang clang-tools gcc-arm-none-eabi openocd
+```
+
+### MacOS
+
 ### 需要的软件
 
 - [vscode](https://code.visualstudio.com/Download)

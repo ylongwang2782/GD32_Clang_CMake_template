@@ -24,7 +24,25 @@ os:
 
 ### Windows
 
+- [vscode](https://code.visualstudio.com/Download)
+- [cmake](https://cmake.org/download/)
+1. 添加环境变量`cmake\bin`
+- [ninja](https://github.com/ninja-build/ninja/releases/tag/v1.12.1)
+1. 添加环境变量`ninja\`
+- [GD32 Embedded Builder](https://www.gd32mcu.com/cn/download)
+1. 添加环境变量`EmbeddedBuilder_v1.4.7.26843\Tools\OpenOCD\xpack-openocd-0.11.0-3\bin`
+2. 添加环境变量`EmbeddedBuilder_v1.4.7.26843\Tools\GNU Tools ARM Embedded\xpack-arm-none-eabi-gcc\9.2.1-1.1\bin`
+
+可选安装项：
+- [clang]([optional](https://www.msys2.org/))
+1. `windows`下载`msys2`
+2. 默认地址为`C:\msys64\clang64\bin`
+- [LLVM](https://releases.llvm.org/download.html)(optional）
+
 ### Ubuntu
+
+- Vscode
+1. `sudo snap install --classic code`
 
 - Ninja
 1. `sudo apt update`
@@ -56,27 +74,10 @@ os:
 - 一键安装指令
 ```bash
 sudo apt update
-sudo apt install ninja-build cmake clang clang-tools gcc-arm-none-eabi openocd
+sudo apt install ninja-build cmake clang clang-tools gcc-arm-none-eabi openocd git clangd bear llvm
 ```
 
 ### MacOS
-
-### 需要的软件
-
-- [vscode](https://code.visualstudio.com/Download)
-- [cmake](https://cmake.org/download/)
-1. 添加环境变量`cmake\bin`
-- [ninja](https://github.com/ninja-build/ninja/releases/tag/v1.12.1)
-1. 添加环境变量`ninja\`
-- [GD32 Embedded Builder](https://www.gd32mcu.com/cn/download)
-1. 添加环境变量`EmbeddedBuilder_v1.4.7.26843\Tools\OpenOCD\xpack-openocd-0.11.0-3\bin`
-2. 添加环境变量`EmbeddedBuilder_v1.4.7.26843\Tools\GNU Tools ARM Embedded\xpack-arm-none-eabi-gcc\9.2.1-1.1\bin`
-
-可选安装项：
-- [clang]([optional](https://www.msys2.org/))
-1. `windows`下载`msys2`
-2. 默认地址为`C:\msys64\clang64\bin`
-- [LLVM](https://releases.llvm.org/download.html)(optional）
 
 ### 需要的vscode拓展
 
@@ -86,19 +87,19 @@ sudo apt install ninja-build cmake clang clang-tools gcc-arm-none-eabi openocd
 
 针对不同平台不同设备，工具链地址不同，因此需要根据不同平台不同设备配置环境变量，将以下变量以及对应的地址添加到环境变量中
 
-1. ARM_TOOLCHAIN_GPP
-2. CLANGD_PATH
-3. CROSS_COMPILE_TOOLCHAIN
-4. OPENOCD_SCRIPTS_PATH
+1. ARM_TOOLCHAIN_CPP
+2. CROSS_COMPILE_TOOLCHAIN
+3. OPENOCD_SCRIPTS_PATH
 
-例如windows下环境变量为
+#### windows
 
 ```bash
-set ARM_TOOLCHAIN_GPP=C:/code_configuration/arm-gnu-toolchain-13.2.Rel1-mingw-w64-i686-arm-none-eabi/bin/arm-none-eabi-g++.exe
-set CLANGD_PATH=C:/msys64/clang64/bin/clangd.exe
+set ARM_TOOLCHAIN_CPP=C:/code_configuration/arm-gnu-toolchain-13.2.Rel1-mingw-w64-i686-arm-none-eabi/bin/arm-none-eabi-g++.exe
 set CROSS_COMPILE_TOOLCHAIN=C:/code_configuration/EmbeddedBuilder_v1.4.7.26843/Tools/GNU Tools ARM Embedded/xpack-arm-none-eabi-gcc/9.2.1-1.1
 set OPENOCD_SCRIPTS_PATH=C:/code_configuration/EmbeddedBuilder_v1.4.7.26843/Tools/OpenOCD/xpack-openocd-0.11.0-3/scripts/
 ```
+
+#### Linux
 
 ### 选择Cmake Kits
 

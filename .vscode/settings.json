@@ -1,9 +1,9 @@
 {
     "code-runner.saveFileBeforeRun": true,
     "cmake.generator": "Ninja", //Unix Makefiles
-    "cmake.configureArgs": [
-        "-DCMAKE_TOOLCHAIN_FILE=cmake/arm-none-eabi-gcc.cmake"
-    ],
+    // "cmake.configureArgs": [
+    //     "-DCMAKE_TOOLCHAIN_FILE=cmake/arm-none-eabi-gcc.cmake"
+    // ],
     "cmake.saveBeforeBuild": true,
     "cmake.buildBeforeRun": true,
     "cmake.parallelJobs": 12,
@@ -23,7 +23,7 @@
         // 指定编译器的位置，必须使用带源文件头文件的编译器地址，不然会提示找不到头文件
         "--query-driver=${env:ARM_TOOLCHAIN_GPP}"
     ],
-    "clangd.path": "${env:CLANGD_PATH}",
+    // "clangd.path": "${env:CLANGD_PATH}",
     "todo-tree.tree.showBadges": false,
     "marscode.chatLanguage": "cn",
 }

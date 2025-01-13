@@ -7,17 +7,11 @@
     "C_Cpp.intelliSenseEngine": "disabled",
     "clangd.arguments": [
         "--clang-tidy",
-        // compelie_commands.json 文件的目录位置(相对于工作区，由于 CMake 生成的该文件默认在 build 文件夹中，故设置为 build)
         "--compile-commands-dir=./build",
-        // 让 Clangd 生成更详细的日志
         "--log=verbose",
-        // 输出的 JSON 文件更美观
         "--pretty",
-        // 建议排序模型
         "--ranking-model=heuristics",
-        // 同时开启的任务数量
         "-j=12",
-        // 指定编译器的位置，必须使用带源文件头文件的编译器地址，不然会提示找不到头文件
         "--query-driver=${env:ARM_CXX_PATH}"
     ],
     "todo-tree.tree.showBadges": false,

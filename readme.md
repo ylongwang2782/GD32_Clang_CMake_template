@@ -41,6 +41,8 @@ os:
 
 ### Ubuntu
 
+#### 安装依赖
+
 - Vscode
 1. `sudo snap install --classic code`
 
@@ -55,51 +57,33 @@ os:
 3. `cmake --version`
 
 - gcc-arm-none-eabi
-1. `sudo apt update`
-2. `sudo apt install gcc-arm-none-eabi`
-3. `arm-none-eabi-gcc --version`
+1. download [xPack GNU Arm Embedded GCC](https://github.com/xpack-dev-tools/arm-none-eabi-gcc-xpack/releases/tag/v14.2.1-1.1)
+2. Add to `~/.bashrc`
 
-- clang
-1. `sudo apt install clang clang-tools`
-
-- clangd
-1. `sudo apt install clangd`
-
-- clang-format
-1. `sudo apt install clang-format`
+- llvm/clang/clangd/clang-format
+1. Download [LLVM](https://github.com/llvm/llvm-project/releases/tag/llvmorg-19.1.6)
+2. Add to `~/.bashrc`
+```
+export PATH=$PATH:/home/gd32-dev/Documents/tools/LLVM-19.1.6-Linux-X64/bin:/home/gd32-dev/Documents/tools/xpack-arm-none-eabi-gcc-14.2.1-1.1/bin
+```
 
 - openocd
 1. 需要[自行编译安装最新版的openocd](https://blog.csdn.net/qq_39765790/article/details/133470373)
 
-- 一键安装指令
-```bash
-sudo apt update
-sudo apt install ninja-build cmake clang clang-tools gcc-arm-none-eabi openocd git clangd bear llvm
-```
+#### 配置vscode
+
+- 指定clangd的编译器
+1. 将`arm-none-eabi-g++`的地址定义为环境变量`ARM_CXX_PATH`
+2. 示例
+- ubuntu: `export ARM_CXX_PATH="/home/gd32-dev/Documents/tools/xpack-arm-none-eabi-gcc-14.2.1-1.1/bin/arm-none-eabi-g++"`
+- windows: `setx /M ARM_CXX_PATH "C:/code_configuration/arm-gnu-toolchain-13.2.Rel1-mingw-w64-i686-arm-none-eabi/bin/arm-none-eabi-g++.exe"`
+4. reboot生效环境变量
 
 ### MacOS
 
 ### 需要的vscode拓展
 
 可以在`vscode`拓展中搜索`@recommended`以便快速安装推荐的拓展
-
-### 配置环境变量
-
-针对不同平台不同设备，工具链地址不同，因此需要根据不同平台不同设备配置环境变量，将以下变量以及对应的地址添加到环境变量中
-
-1. ARM_TOOLCHAIN_CPP
-2. CROSS_COMPILE_TOOLCHAIN
-3. OPENOCD_SCRIPTS_PATH
-
-#### windows
-
-```bash
-set ARM_TOOLCHAIN_CPP=C:/code_configuration/arm-gnu-toolchain-13.2.Rel1-mingw-w64-i686-arm-none-eabi/bin/arm-none-eabi-g++.exe
-set CROSS_COMPILE_TOOLCHAIN=C:/code_configuration/EmbeddedBuilder_v1.4.7.26843/Tools/GNU Tools ARM Embedded/xpack-arm-none-eabi-gcc/9.2.1-1.1
-set OPENOCD_SCRIPTS_PATH=C:/code_configuration/EmbeddedBuilder_v1.4.7.26843/Tools/OpenOCD/xpack-openocd-0.11.0-3/scripts/
-```
-
-#### Linux
 
 ### 选择Cmake Kits
 

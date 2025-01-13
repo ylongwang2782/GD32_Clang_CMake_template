@@ -2,7 +2,6 @@
 set(OPENOCD_EXECUTABLE "openocd")
 set(PYOCD_EXECUTABLE "pyocd")
 
-# FIXME windows电脑下只能放置在C盘才能正常运行，原因未知
 install(CODE
 CODE "MESSAGE(\"Flash......\")"
 CODE "execute_process(COMMAND ${OPENOCD_EXECUTABLE} -f ${PROJECT_SOURCE_DIR}/Scripts/OpenOCD/openocd_gdlink.cfg -c \"program ${EXECUTABLE_OUTPUT_PATH}/${EXECUTABLE_NAME}.elf verify reset\" -c shutdown)"

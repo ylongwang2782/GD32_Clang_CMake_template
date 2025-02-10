@@ -21,8 +21,6 @@ void logTask(void *pvParameters);
 // 全局信号量
 extern SemaphoreHandle_t dmaCompleteSemaphore;
 
-Logger Log;
-
 LED led0(GPIOC, GPIO_PIN_6);
 
 // 创建 USART_DMA_Handler 实例
@@ -33,10 +31,6 @@ int main(void) {
     nvic_priority_group_set(NVIC_PRIGROUP_PRE4_SUB0);
 
     UIDReader &uid = UIDReader::getInstance();
-
-    // FIXME 修复队列大小不能扩大的问题
-    Log.logQueue = xQueueCreate(10, LOG_QUEUE_SIZE);
-
     xTaskCreate(usartDMATask, "usartDMATask", 256, NULL, 1, NULL);
     xTaskCreate(ledBlinkTask, "ledBlinkTask", 256, NULL, 2, NULL);
     xTaskCreate(logTask, "logTask", 1024, NULL, 3, NULL);
@@ -46,6 +40,7 @@ int main(void) {
 }
 
 void usartDMATask(void *pvParameters) {
+    Logger &log = Logger::getInstance();
     // 创建信号量
     dmaCompleteSemaphore = xSemaphoreCreateBinary();
     // Log.d("Usart DMA task start.");
@@ -53,14 +48,15 @@ void usartDMATask(void *pvParameters) {
     for (;;) {
         // 等待 DMA 完成信号
         if (xSemaphoreTake(dmaCompleteSemaphore, portMAX_DELAY) == pdPASS) {
-            Log.d("Usart recv.");
+            log.d("Usart recv.");
         }
     }
 }
 
 void ledBlinkTask(void *pvParameters) {
+    Logger &log = Logger::getInstance();
     for (;;) {
-        Log.d("ledBlinkTask!");
+        log.d("ledBlinkTask!");
         led0.toggle();
         vTaskDelay(500);
     }
@@ -68,8 +64,9 @@ void ledBlinkTask(void *pvParameters) {
 
 void logTask(void *pvParameters) {
     char buffer[LOG_QUEUE_SIZE + 8];
+    Logger &log = Logger::getInstance();
     for (;;) {
-        if (xQueueReceive(Log.logQueue, buffer, portMAX_DELAY)) {
+        if (xQueueReceive(log.logQueue, buffer, portMAX_DELAY)) {
             // TODO 更换为dma发送
             for (const char *p = buffer; *p; ++p) {
                 while (RESET == usart_flag_get(USART_LOG, USART_FLAG_TBE));

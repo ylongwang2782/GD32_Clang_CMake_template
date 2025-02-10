@@ -17,6 +17,11 @@ enum class LogLevel { VERBOSE, DEBUGL, INFO, WARN, ERROR };
 
 class Logger {
    public:
+    static Logger &getInstance() {
+        static Logger instance;
+        return instance;
+    }
+
     void log(LogLevel level, const char *format, va_list args) {
         // 定义日志级别的字符串表示
         static const char *levelStr[] = {"VERBOSE", "DEBUG", "INFO", "WARN",
@@ -83,6 +88,10 @@ class Logger {
     QueueHandle_t logQueue;
 
    private:
+    Logger() {
+        logQueue = xQueueCreate(10, LOG_QUEUE_SIZE);
+    }    // 私有构造，确保只能通过 `getInstance()` 获取
+
     void output(LogLevel level, const char *message) {
         // 将日志消息添加到队列中
         xQueueSend(logQueue, message, portMAX_DELAY);

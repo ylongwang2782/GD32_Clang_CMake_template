@@ -21,8 +21,6 @@ void logTask(void *pvParameters);
 // 全局信号量
 extern SemaphoreHandle_t dmaCompleteSemaphore;
 
-LED led0(GPIOC, GPIO_PIN_6);
-
 // 创建 USART_DMA_Handler 实例
 extern UasrtConfig usart1_info;
 USART_DMA_Handler usartDMA = USART_DMA_Handler(usart1_info);
@@ -30,7 +28,6 @@ USART_DMA_Handler usartDMA = USART_DMA_Handler(usart1_info);
 int main(void) {
     nvic_priority_group_set(NVIC_PRIGROUP_PRE4_SUB0);
 
-    UIDReader &uid = UIDReader::getInstance();
     xTaskCreate(usartDMATask, "usartDMATask", 256, NULL, 1, NULL);
     xTaskCreate(ledBlinkTask, "ledBlinkTask", 256, NULL, 2, NULL);
     xTaskCreate(logTask, "logTask", 1024, NULL, 3, NULL);
@@ -55,6 +52,8 @@ void usartDMATask(void *pvParameters) {
 
 void ledBlinkTask(void *pvParameters) {
     Logger &log = Logger::getInstance();
+    LED led0(GPIOC, GPIO_PIN_6);
+
     for (;;) {
         log.d("ledBlinkTask!");
         led0.toggle();

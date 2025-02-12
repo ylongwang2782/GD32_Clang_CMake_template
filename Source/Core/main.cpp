@@ -1,5 +1,6 @@
 #include <cstdio>
 
+#include "TaskCPP.h"
 #include "bsp_led.h"
 #include "bsp_log.h"
 #include "bsp_uid.h"
@@ -14,10 +15,6 @@ extern "C" {
 }
 #endif
 
-void usartDMATask(void *pvParameters);
-void ledBlinkTask(void *pvParameters);
-void logTask(void *pvParameters);
-
 // 全局信号量
 extern SemaphoreHandle_t dmaCompleteSemaphore;
 
@@ -25,52 +22,90 @@ extern SemaphoreHandle_t dmaCompleteSemaphore;
 extern UasrtConfig usart1_info;
 USART_DMA_Handler usartDMA = USART_DMA_Handler(usart1_info);
 
-int main(void) {
-    nvic_priority_group_set(NVIC_PRIGROUP_PRE4_SUB0);
+class LedBlinkTask : public TaskBase {
+   public:
+    LedBlinkTask() {
+        xTaskCreate(taskFunction, "TaskA", 1024, this, TaskPrio_High,
+                    &taskHandle);
+    }
 
-    xTaskCreate(usartDMATask, "usartDMATask", 256, NULL, 1, NULL);
-    xTaskCreate(ledBlinkTask, "ledBlinkTask", 256, NULL, 2, NULL);
-    xTaskCreate(logTask, "logTask", 1024, NULL, 3, NULL);
+    static void taskFunction(void *pvParameters) {
+        LedBlinkTask *instance = static_cast<LedBlinkTask *>(pvParameters);
+        instance->run();
+    }
 
-    vTaskStartScheduler();
-    for (;;);
-}
+    void run() {
+        Logger &log = Logger::getInstance();
+        LED led0(GPIOC, GPIO_PIN_6);
 
-void usartDMATask(void *pvParameters) {
-    Logger &log = Logger::getInstance();
-    // 创建信号量
-    dmaCompleteSemaphore = xSemaphoreCreateBinary();
-    // Log.d("Usart DMA task start.");
-    USART_DMA_Handler *uartDMA = static_cast<USART_DMA_Handler *>(pvParameters);
-    for (;;) {
-        // 等待 DMA 完成信号
-        if (xSemaphoreTake(dmaCompleteSemaphore, portMAX_DELAY) == pdPASS) {
-            log.d("Usart recv.");
+        for (;;) {
+            log.d("ledBlinkTask!");
+            led0.toggle();
+            vTaskDelay(500);
         }
     }
-}
+};
 
-void ledBlinkTask(void *pvParameters) {
-    Logger &log = Logger::getInstance();
-    LED led0(GPIOC, GPIO_PIN_6);
-
-    for (;;) {
-        log.d("ledBlinkTask!");
-        led0.toggle();
-        vTaskDelay(500);
+class UsartDMATask : public TaskBase {
+   public:
+    UsartDMATask() {
+        xTaskCreate(taskFunction, "TaskB", 1024, this, TaskPrio_Mid,
+                    &taskHandle);
     }
-}
 
-void logTask(void *pvParameters) {
-    char buffer[LOG_QUEUE_SIZE + 8];
-    Logger &log = Logger::getInstance();
-    for (;;) {
-        if (xQueueReceive(log.logQueue, buffer, portMAX_DELAY)) {
-            // TODO 更换为dma发送
-            for (const char *p = buffer; *p; ++p) {
-                while (RESET == usart_flag_get(USART_LOG, USART_FLAG_TBE));
-                usart_data_transmit(USART_LOG, (uint8_t)*p);
+    static void taskFunction(void *pvParameters) {
+        UsartDMATask *instance = static_cast<UsartDMATask *>(pvParameters);
+        instance->run();
+    }
+
+    void run() {
+        Logger &log = Logger::getInstance();
+        // 创建信号量
+        dmaCompleteSemaphore = xSemaphoreCreateBinary();
+        log.d("Usart DMA task start.");
+        for (;;) {
+            // 等待 DMA 完成信号
+            if (xSemaphoreTake(dmaCompleteSemaphore, portMAX_DELAY) == pdPASS) {
+                log.d("Usart recv.");
             }
         }
     }
+};
+
+class LogTask : public TaskBase {
+   public:
+    LogTask() {
+        xTaskCreate(taskFunction, "TaskB", 1024, this, TaskPrio_Low,
+                    &taskHandle);
+    }
+
+    static void taskFunction(void *pvParameters) {
+        LogTask *instance = static_cast<LogTask *>(pvParameters);
+        instance->run();
+    }
+
+    void run() {
+        char buffer[LOG_QUEUE_SIZE + 8];
+        Logger &log = Logger::getInstance();
+        for (;;) {
+            if (xQueueReceive(log.logQueue, buffer, portMAX_DELAY)) {
+                // TODO 更换为dma发送
+                for (const char *p = buffer; *p; ++p) {
+                    while (RESET == usart_flag_get(USART_LOG, USART_FLAG_TBE));
+                    usart_data_transmit(USART_LOG, (uint8_t)*p);
+                }
+            }
+        }
+    }
+};
+
+int main(void) {
+    nvic_priority_group_set(NVIC_PRIGROUP_PRE4_SUB0);
+
+    LedBlinkTask ledBlinkTask;
+    UsartDMATask usartDMATask;
+    LogTask logTask;
+
+    vTaskStartScheduler();
+    for (;;);
 }

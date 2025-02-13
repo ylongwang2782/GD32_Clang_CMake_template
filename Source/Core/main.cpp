@@ -4,7 +4,7 @@
 #include "TaskCPP.h"
 #include "TaskCpp.h"
 #include "bsp_led.h"
-#include "bsp_log.h"
+#include "bsp_log.hpp"
 #include "bsp_uid.h"
 
 #ifdef __cplusplus

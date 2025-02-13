@@ -1,4 +1,4 @@
-#include "bsp_log.h"
+#include "bsp_log.hpp"
 
 void vAssertCalled(const char *file, int line) {
     taskDISABLE_INTERRUPTS();

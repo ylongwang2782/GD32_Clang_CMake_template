@@ -3,7 +3,7 @@
 
 #include <stdarg.h>
 
-#include "bsp_uart.h"
+#include "bsp_uart.hpp"
 
 extern "C" {
 #include "FreeRTOS.h"

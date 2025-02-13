@@ -3,9 +3,9 @@
 
 #include "TaskCPP.h"
 #include "TaskCpp.h"
-#include "bsp_led.h"
+#include "bsp_led.hpp"
 #include "bsp_log.hpp"
-#include "bsp_uid.h"
+#include "bsp_uid.hpp"
 
 #ifdef __cplusplus
 extern "C" {

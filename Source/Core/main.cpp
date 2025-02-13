@@ -1,6 +1,7 @@
 #include <cstdio>
 
 #include "TaskCPP.h"
+#include "TaskCpp.h"
 #include "bsp_led.h"
 #include "bsp_log.h"
 #include "bsp_uid.h"
@@ -22,43 +23,27 @@ extern SemaphoreHandle_t dmaCompleteSemaphore;
 extern UasrtConfig usart1_info;
 USART_DMA_Handler usartDMA = USART_DMA_Handler(usart1_info);
 
-class LedBlinkTask : public TaskBase {
+class LedBlinkTask : public TaskClassS<1024> {
    public:
-    LedBlinkTask() {
-        xTaskCreate(taskFunction, "TaskA", 1024, this, TaskPrio_High,
-                    &taskHandle);
-    }
+    LedBlinkTask() : TaskClassS<1024>("LedBlinkTask", TaskPrio_Mid) {}
 
-    static void taskFunction(void *pvParameters) {
-        LedBlinkTask *instance = static_cast<LedBlinkTask *>(pvParameters);
-        instance->run();
-    }
-
-    void run() {
+    void task() override {
         Logger &log = Logger::getInstance();
         LED led0(GPIOC, GPIO_PIN_6);
 
         for (;;) {
             log.d("ledBlinkTask!");
             led0.toggle();
-            vTaskDelay(500);
+            TaskBase::delay(500);
         }
     }
 };
 
-class UsartDMATask : public TaskBase {
+class UsartDMATask : public TaskClassS<1024> {
    public:
-    UsartDMATask() {
-        xTaskCreate(taskFunction, "TaskB", 1024, this, TaskPrio_Mid,
-                    &taskHandle);
-    }
+    UsartDMATask() : TaskClassS<1024>("LedBlinkTask", TaskPrio_Mid) {}
 
-    static void taskFunction(void *pvParameters) {
-        UsartDMATask *instance = static_cast<UsartDMATask *>(pvParameters);
-        instance->run();
-    }
-
-    void run() {
+    void task() override {
         Logger &log = Logger::getInstance();
         // 创建信号量
         dmaCompleteSemaphore = xSemaphoreCreateBinary();
@@ -72,19 +57,11 @@ class UsartDMATask : public TaskBase {
     }
 };
 
-class LogTask : public TaskBase {
+class LogTask : public TaskClassS<1024> {
    public:
-    LogTask() {
-        xTaskCreate(taskFunction, "TaskB", 1024, this, TaskPrio_Low,
-                    &taskHandle);
-    }
+    LogTask() : TaskClassS<1024>("LedBlinkTask", TaskPrio_Mid) {}
 
-    static void taskFunction(void *pvParameters) {
-        LogTask *instance = static_cast<LogTask *>(pvParameters);
-        instance->run();
-    }
-
-    void run() {
+    void task() override {
         char buffer[LOG_QUEUE_SIZE + 8];
         Logger &log = Logger::getInstance();
         for (;;) {
@@ -99,12 +76,12 @@ class LogTask : public TaskBase {
     }
 };
 
+LedBlinkTask ledBlinkTask;
+UsartDMATask usartDMATask;
+LogTask logTask;
+
 int main(void) {
     nvic_priority_group_set(NVIC_PRIGROUP_PRE4_SUB0);
-
-    LedBlinkTask ledBlinkTask;
-    UsartDMATask usartDMATask;
-    LogTask logTask;
 
     vTaskStartScheduler();
     for (;;);

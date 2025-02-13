@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <cstdio>
 
 #include "TaskCPP.h"
@@ -16,12 +17,9 @@ extern "C" {
 }
 #endif
 
-// 全局信号量
-extern SemaphoreHandle_t dmaCompleteSemaphore;
-
-// 创建 USART_DMA_Handler 实例
-extern UasrtConfig usart1_info;
-USART_DMA_Handler usartDMA = USART_DMA_Handler(usart1_info);
+extern UasrtInfo usart1_info;
+UartConfig uart1Conf(usart1_info);
+Uart uart1(uart1Conf);
 
 class LedBlinkTask : public TaskClassS<1024> {
    public:
@@ -32,7 +30,6 @@ class LedBlinkTask : public TaskClassS<1024> {
         LED led0(GPIOC, GPIO_PIN_6);
 
         for (;;) {
-            log.d("ledBlinkTask!");
             led0.toggle();
             TaskBase::delay(500);
         }
@@ -41,17 +38,21 @@ class LedBlinkTask : public TaskClassS<1024> {
 
 class UsartDMATask : public TaskClassS<1024> {
    public:
-    UsartDMATask() : TaskClassS<1024>("LedBlinkTask", TaskPrio_Mid) {}
+    UsartDMATask() : TaskClassS<1024>("UsartDMATask", TaskPrio_Mid) {}
 
     void task() override {
         Logger &log = Logger::getInstance();
-        // 创建信号量
-        dmaCompleteSemaphore = xSemaphoreCreateBinary();
-        log.d("Usart DMA task start.");
         for (;;) {
             // 等待 DMA 完成信号
-            if (xSemaphoreTake(dmaCompleteSemaphore, portMAX_DELAY) == pdPASS) {
+            if (xSemaphoreTake(usart1_info.dmaRxDoneSema, portMAX_DELAY) == pdPASS) {
                 log.d("Usart recv.");
+                uint8_t buffer[DMA_RX_BUFFER_SIZE];
+                uint16_t len =
+                    uart1.getReceivedData(buffer, DMA_RX_BUFFER_SIZE);
+                if (len > 0) {
+                    // dma tx the data recv
+                    uart1.send(buffer, len);
+                }
             }
         }
     }
@@ -59,14 +60,13 @@ class UsartDMATask : public TaskClassS<1024> {
 
 class LogTask : public TaskClassS<1024> {
    public:
-    LogTask() : TaskClassS<1024>("LedBlinkTask", TaskPrio_Mid) {}
+    LogTask() : TaskClassS<1024>("LogTask", TaskPrio_Mid) {}
 
     void task() override {
         char buffer[LOG_QUEUE_SIZE + 8];
         Logger &log = Logger::getInstance();
         for (;;) {
             if (xQueueReceive(log.logQueue, buffer, portMAX_DELAY)) {
-                // TODO 更换为dma发送
                 for (const char *p = buffer; *p; ++p) {
                     while (RESET == usart_flag_get(USART_LOG, USART_FLAG_TBE));
                     usart_data_transmit(USART_LOG, (uint8_t)*p);
@@ -82,7 +82,6 @@ LogTask logTask;
 
 int main(void) {
     nvic_priority_group_set(NVIC_PRIGROUP_PRE4_SUB0);
-
     vTaskStartScheduler();
     for (;;);
 }

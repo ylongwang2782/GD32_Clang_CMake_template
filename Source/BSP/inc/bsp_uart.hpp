@@ -1,4 +1,7 @@
 // #include "cstdio.h"
+#ifndef BSP_UART_HPP
+#define BSP_UART_HPP
+
 #include <cstdint>
 #include <cstring>
 #include <string>
@@ -174,3 +177,4 @@ class Uart {
         dma_channel_enable(config.dma_periph, config.dma_rx_channel);
     }
 };
+#endif

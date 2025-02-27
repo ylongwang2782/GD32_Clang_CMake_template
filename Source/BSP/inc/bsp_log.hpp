@@ -11,7 +11,7 @@ extern "C" {
 #include "task.h"
 }
 
-#define USART_LOG      USART1
+#define USART_LOG      UART3
 #define LOG_QUEUE_SIZE 64
 enum class LogLevel { VERBOSE, DEBUGL, INFO, WARN, ERROR };
 

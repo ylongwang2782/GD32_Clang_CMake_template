@@ -17,9 +17,13 @@ extern "C" {
 }
 #endif
 
-extern UasrtInfo usart1_info;
+
 UartConfig uart1Conf(usart1_info);
+UartConfig uart2Conf(usart2_info);
+UartConfig uart3Conf(uart3_info);
 Uart uart1(uart1Conf);
+Uart uart2(uart2Conf);
+Uart uart3(uart3Conf);
 
 class LedBlinkTask : public TaskClassS<1024> {
    public:
@@ -27,10 +31,11 @@ class LedBlinkTask : public TaskClassS<1024> {
 
     void task() override {
         Logger &log = Logger::getInstance();
-        LED led0(GPIO::Port::C, GPIO::Pin::PIN_6);
+        LED led0(GPIO::Port::C, GPIO::Pin::PIN_13);
 
         for (;;) {
             led0.toggle();
+            log.d("Led toggle.");
             TaskBase::delay(500);
         }
     }
@@ -44,14 +49,14 @@ class UsartDMATask : public TaskClassS<1024> {
         Logger &log = Logger::getInstance();
         for (;;) {
             // 等待 DMA 完成信号
-            if (xSemaphoreTake(usart1_info.dmaRxDoneSema, portMAX_DELAY) == pdPASS) {
+            if (xSemaphoreTake(usart2_info.dmaRxDoneSema, portMAX_DELAY) == pdPASS) {
                 log.d("Usart recv.");
                 uint8_t buffer[DMA_RX_BUFFER_SIZE];
                 uint16_t len =
-                    uart1.getReceivedData(buffer, DMA_RX_BUFFER_SIZE);
+                    uart2.getReceivedData(buffer, DMA_RX_BUFFER_SIZE);
                 if (len > 0) {
                     // dma tx the data recv
-                    uart1.send(buffer, len);
+                    uart2.send(buffer, len);
                 }
             }
         }

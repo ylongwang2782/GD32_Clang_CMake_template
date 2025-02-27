@@ -49,14 +49,14 @@ class UsartDMATask : public TaskClassS<1024> {
         Logger &log = Logger::getInstance();
         for (;;) {
             // 等待 DMA 完成信号
-            if (xSemaphoreTake(usart2_info.dmaRxDoneSema, portMAX_DELAY) == pdPASS) {
+            if (xSemaphoreTake(uart3_info.dmaRxDoneSema, portMAX_DELAY) == pdPASS) {
                 log.d("Usart recv.");
                 uint8_t buffer[DMA_RX_BUFFER_SIZE];
                 uint16_t len =
-                    uart2.getReceivedData(buffer, DMA_RX_BUFFER_SIZE);
+                    uart3.getReceivedData(buffer, DMA_RX_BUFFER_SIZE);
                 if (len > 0) {
                     // dma tx the data recv
-                    uart2.send(buffer, len);
+                    uart3.send(buffer, len);
                 }
             }
         }

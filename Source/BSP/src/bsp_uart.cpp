@@ -52,7 +52,7 @@ UasrtInfo uart3_info = {.baudrate = 115200,
                         .dma_rx_channel = DMA_CH2,
                         .nvic_irq = UART3_IRQn,
                         .nvic_irq_pre_priority = 1,
-                        .nvic_irq_sub_priority = 2,
+                        .nvic_irq_sub_priority = 3,
                         .rx_count = 0,
                         .dmaRxDoneSema = xSemaphoreCreateBinary()};
 
@@ -71,7 +71,7 @@ void handle_usart_interrupt(UasrtInfo *config) {
                        DMA_FLAG_FTF);
         // 通知任务 DMA 接收完成
         BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-        xSemaphoreGiveFromISR(usart1_info.dmaRxDoneSema,
+        xSemaphoreGiveFromISR(config->dmaRxDoneSema,
                               &xHigherPriorityTaskWoken);
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
         dma_transfer_number_config(config->dma_periph, config->dma_rx_channel,

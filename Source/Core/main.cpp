@@ -20,12 +20,14 @@ extern "C" {
 }
 #endif
 
-UartConfig uart1Conf(usart1_info);
-UartConfig uart2Conf(usart2_info);
+UartConfig usart1Conf(usart1_info);
+UartConfig usart2Conf(usart2_info);
 UartConfig uart3Conf(uart3_info);
-Uart uart1(uart1Conf);
-Uart uart2(uart2Conf);
+Uart usart1(usart1Conf);
+Uart usart2(usart2Conf);
 Uart uart3(uart3Conf);
+
+Logger log(usart1);
 
 class PinTest {
    public:
@@ -84,7 +86,6 @@ class PinTestTask : public TaskClassS<1024> {
     PinTestTask() : TaskClassS<1024>("LedBlinkTask", TaskPrio_Mid) {}
 
     void task() override {
-        Logger &log = Logger::getInstance();
         PinTest pinTest;
         pinTest.init();
 
@@ -104,7 +105,6 @@ class LedBlinkTask : public TaskClassS<1024> {
     LedBlinkTask() : TaskClassS<1024>("LedBlinkTask", TaskPrio_Mid) {}
 
     void task() override {
-        Logger &log = Logger::getInstance();
         LED led0(GPIO::Port::C, GPIO::Pin::PIN_13);
 
         for (;;) {
@@ -120,18 +120,17 @@ class UsartDMATask : public TaskClassS<1024> {
     UsartDMATask() : TaskClassS<1024>("UsartDMATask", TaskPrio_Mid) {}
 
     void task() override {
-        Logger &log = Logger::getInstance();
         for (;;) {
             // 等待 DMA 完成信号
-            if (xSemaphoreTake(uart3_info.dmaRxDoneSema, portMAX_DELAY) ==
+            if (xSemaphoreTake(usart1_info.dmaRxDoneSema, portMAX_DELAY) ==
                 pdPASS) {
                 log.d("Usart recv.");
                 uint8_t buffer[DMA_RX_BUFFER_SIZE];
                 uint16_t len =
-                    uart3.getReceivedData(buffer, DMA_RX_BUFFER_SIZE);
+                    usart1.getReceivedData(buffer, DMA_RX_BUFFER_SIZE);
                 if (len > 0) {
                     // dma tx the data recv
-                    uart3.send(buffer, len);
+                    usart1.send(buffer, len);
                 }
             }
         }
@@ -144,19 +143,19 @@ class LogTask : public TaskClassS<1024> {
 
     void task() override {
         char buffer[LOG_QUEUE_SIZE + 8];
-        Logger &log = Logger::getInstance();
         for (;;) {
-            if (xQueueReceive(log.logQueue, buffer, portMAX_DELAY)) {
-                for (const char *p = buffer; *p; ++p) {
-                    while (RESET == usart_flag_get(USART_LOG, USART_FLAG_TBE));
-                    usart_data_transmit(USART_LOG, (uint8_t)*p);
-                }
+            LogMessage logMsg;
+            // 从队列中获取日志消息
+            if (log.logQueue.pop(logMsg, portMAX_DELAY)) {
+                log.uart.send(
+                    reinterpret_cast<const uint8_t *>(logMsg.message.data()),
+                    strlen(logMsg.message.data()));
             }
         }
     }
 };
 
-PinTestTask pinTestTask;
+// PinTestTask pinTestTask;
 LedBlinkTask ledBlinkTask;
 UsartDMATask usartDMATask;
 LogTask logTask;

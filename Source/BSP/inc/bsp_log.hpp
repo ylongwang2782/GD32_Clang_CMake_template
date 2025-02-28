@@ -2,7 +2,9 @@
 #define _LOG_H_
 
 #include <stdarg.h>
+#include <array>
 
+#include "QueueCPP.h"
 #include "bsp_uart.hpp"
 
 extern "C" {
@@ -11,16 +13,28 @@ extern "C" {
 #include "task.h"
 }
 
-#define USART_LOG      UART3
+#define USART_LOG      USART1
 #define LOG_QUEUE_SIZE 64
+
+// 定义日志消息的最大长度
+#define LOG_MESSAGE_MAX_LENGTH 64
+
+// 定义日志队列的长度
+#define LOG_QUEUE_LENGTH 10
+
+// 日志消息结构体
+struct LogMessage {
+    std::array<char, LOG_MESSAGE_MAX_LENGTH> message;
+};
+
 enum class LogLevel { VERBOSE, DEBUGL, INFO, WARN, ERROR };
 
 class Logger {
    public:
-    static Logger &getInstance() {
-        static Logger instance;
-        return instance;
-    }
+    Logger(Uart &uart) : uart(uart), logQueue("LogQueue") {}
+
+    Uart &uart;    // 串口对象的引用
+    FreeRTOScpp::Queue<LogMessage, LOG_QUEUE_LENGTH> logQueue;
 
     void log(LogLevel level, const char *format, va_list args) {
         // 定义日志级别的字符串表示
@@ -85,16 +99,16 @@ class Logger {
         va_end(args);
     }
 
-    QueueHandle_t logQueue;
-
    private:
-    Logger() {
-        logQueue = xQueueCreate(10, LOG_QUEUE_SIZE);
-    }    // 私有构造，确保只能通过 `getInstance()` 获取
-
     void output(LogLevel level, const char *message) {
-        // 将日志消息添加到队列中
-        xQueueSend(logQueue, message, portMAX_DELAY);
+        LogMessage logMsg;
+        std::strncpy(logMsg.message.data(), message, LOG_MESSAGE_MAX_LENGTH - 1);
+        logMsg.message[LOG_MESSAGE_MAX_LENGTH - 1] = '\0';
+
+        // 将日志消息放入队列
+        if (!logQueue.add(logMsg, portMAX_DELAY)) {
+            printf("Failed to add log message to queue!\n");
+        }
     }
 };
 

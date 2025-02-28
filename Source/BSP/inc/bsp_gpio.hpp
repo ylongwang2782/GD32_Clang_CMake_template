@@ -90,10 +90,23 @@ class GPIO {
         rcu_periph_clock_enable(get_rcu_port(port));
         mode_set(mode, pull);
         output_options_set(otype, speed);
+        if (mode == Mode::OUTPUT) {
+            bit_set();
+        }
     }
     void mode_set(Mode mode, PullUpDown pull) {
         gpio_mode_set(port_base(), static_cast<uint32_t>(mode),
                       static_cast<uint32_t>(pull), pin_mask());
+    }
+
+    void switch_to_input() {
+        gpio_mode_set(port_base(), static_cast<uint32_t>(Mode::INPUT),
+                      static_cast<uint32_t>(PullUpDown::PULLUP), pin_mask());
+    }
+
+    void switch_to_output() {
+        gpio_mode_set(port_base(), static_cast<uint32_t>(Mode::OUTPUT),
+                      static_cast<uint32_t>(PullUpDown::PULLUP), pin_mask());
     }
 
     void output_options_set(OType otype, Speed speed) {

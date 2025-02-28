@@ -2,6 +2,7 @@
 #define _LOG_H_
 
 #include <stdarg.h>
+
 #include <array>
 
 #include "QueueCPP.h"
@@ -27,7 +28,8 @@ struct LogMessage {
     std::array<char, LOG_MESSAGE_MAX_LENGTH> message;
 };
 
-enum class LogLevel { VERBOSE, DEBUGL, INFO, WARN, ERROR };
+// 日志级别枚举
+enum class Level { VERBOSE, DEBUGL, INFO, WARN, ERROR, RAW };
 
 class Logger {
    public:
@@ -36,7 +38,7 @@ class Logger {
     Uart &uart;    // 串口对象的引用
     FreeRTOScpp::Queue<LogMessage, LOG_QUEUE_LENGTH> logQueue;
 
-    void log(LogLevel level, const char *format, va_list args) {
+    void log(Level level, const char *format, va_list args) {
         // 定义日志级别的字符串表示
         static const char *levelStr[] = {"VERBOSE", "DEBUG", "INFO", "WARN",
                                          "ERROR"};
@@ -50,19 +52,25 @@ class Logger {
         // 格式化日志内容
         vsnprintf(buffer, sizeof(buffer), format, args);
 
-        // 添加级别前缀
-        char finalMessage[bufferSize + 8];
-        snprintf(finalMessage, sizeof(finalMessage), "[%s]:%s\n",
-                 levelStr[static_cast<int>(level)], buffer);
-
-        // 输出日志
-        output(level, finalMessage);
+        if (level != Level::RAW) {
+            // 添加级别前缀
+            char finalMessage[bufferSize + 8];
+            snprintf(finalMessage, sizeof(finalMessage), "[%s]:%s\n",
+                     levelStr[static_cast<int>(level)], buffer);
+            // 输出日志
+            output(level, finalMessage);
+        } else {
+            char finalMessage[bufferSize];
+            snprintf(finalMessage, sizeof(finalMessage), "%s\n", buffer);
+            // 输出日志
+            output(level, finalMessage);
+        }
     }
     void v(const char *format, ...) {
         va_list args;
         va_start(args, format);
 
-        log(LogLevel::VERBOSE, format, args);
+        log(Level::VERBOSE, format, args);
 
         va_end(args);
     }
@@ -70,7 +78,7 @@ class Logger {
         va_list args;
         va_start(args, format);
 
-        log(LogLevel::DEBUGL, format, args);
+        log(Level::DEBUGL, format, args);
 
         va_end(args);
     }
@@ -78,7 +86,7 @@ class Logger {
         va_list args;
         va_start(args, format);
 
-        log(LogLevel::INFO, format, args);
+        log(Level::INFO, format, args);
 
         va_end(args);
     }
@@ -86,7 +94,7 @@ class Logger {
         va_list args;
         va_start(args, format);
 
-        log(LogLevel::WARN, format, args);
+        log(Level::WARN, format, args);
 
         va_end(args);
     }
@@ -94,15 +102,16 @@ class Logger {
         va_list args;
         va_start(args, format);
 
-        log(LogLevel::ERROR, format, args);
+        log(Level::ERROR, format, args);
 
         va_end(args);
     }
 
    private:
-    void output(LogLevel level, const char *message) {
+    void output(Level level, const char *message) {
         LogMessage logMsg;
-        std::strncpy(logMsg.message.data(), message, LOG_MESSAGE_MAX_LENGTH - 1);
+        std::strncpy(logMsg.message.data(), message,
+                     LOG_MESSAGE_MAX_LENGTH - 1);
         logMsg.message[LOG_MESSAGE_MAX_LENGTH - 1] = '\0';
 
         // 将日志消息放入队列

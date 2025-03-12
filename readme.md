@@ -149,6 +149,9 @@ setx /M ARM_CXX_PATH "C:/path/to/arm-gnu-toolchain/bin/arm-none-eabi-g++.exe"
     - 建议将该命令绑定到快捷键 `F7`。
 
 ### 烧录
++ **flash_by_install.cmake**：
+  - `Jlink`选择`openocd_jlink.cfg`，并且使用[zadig](https://blog.csdn.net/K_O_R_K/article/details/120615059)切换`Jlink`为`WinUSB`模式。
+  - `DapLink`选择`openocd_daplink.cfg`。
 + **CMake: Install**：通过该指令进行烧录，默认使用 **DapLink**。
     - 建议将该命令绑定到快捷键 `F8`。
 

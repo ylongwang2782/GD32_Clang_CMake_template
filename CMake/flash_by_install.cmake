@@ -4,7 +4,7 @@ set(PYOCD_EXECUTABLE "pyocd")
 
 install(CODE
 CODE "MESSAGE(\"Flash......\")"
-CODE "execute_process(COMMAND ${OPENOCD_EXECUTABLE} -f ${PROJECT_SOURCE_DIR}/Scripts/OpenOCD/openocd_gdlink.cfg -c \"program ${EXECUTABLE_OUTPUT_PATH}/${EXECUTABLE_NAME}.elf verify reset\" -c shutdown)"
+CODE "execute_process(COMMAND ${OPENOCD_EXECUTABLE} -f ${PROJECT_SOURCE_DIR}/Scripts/OpenOCD/openocd_daplink.cfg -c \"program ${EXECUTABLE_OUTPUT_PATH}/${EXECUTABLE_NAME}.elf verify reset\" -c shutdown)"
 )
  
 # install(CODE

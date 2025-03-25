@@ -1,0 +1,378 @@
+#ifndef BSP_SPI_H
+#define BSP_SPI_H
+#include <cstdint>
+#include <type_traits>
+#include <vector>
+
+#include "FreeRTOS.h"
+#include "QueueCpp.h"
+#include "bsp_gpio.hpp"
+#include "gd32f4xx.h"
+#include "gd32f4xx_misc.h"
+#include "gd32f4xx_spi.h"
+#include "task.h"
+
+typedef struct {
+    uint32_t spi_periph;
+    rcu_periph_enum spi_periph_clock;
+
+    uint32_t mosi_port;
+    uint32_t mosi_pin;
+    int32_t mosi_func_num;
+
+    uint32_t miso_port;
+    uint32_t miso_pin;
+    int32_t miso_func_num;
+
+    uint32_t sclk_port;
+    uint32_t sclk_pin;
+    int32_t sclk_func_num;
+
+    uint32_t nss_port;
+    uint32_t nss_pin;
+    int32_t nss_func_num;
+
+} Spi_IOConfig;
+
+typedef struct {
+    uint16_t rx_buffer_size;
+    uint16_t tx_buffer_size;
+} SpiBufferInfo;
+
+typedef struct {
+    uint32_t prescale;
+    uint32_t clock_polarity_phase;
+    uint32_t frame_size;
+    uint32_t endian;
+} Spi_PeriphConfig;
+
+extern const Spi_IOConfig SPI1_C1MOSI_C2MISO_B10SCLK_B12NSS;
+extern const Spi_IOConfig SPI1_C1MOSI_C2MISO_C7SCLK_B12NSS;
+extern const Spi_IOConfig SPI3_E5MOSI_E6MISO_E2SCLK_E11NSS;
+
+extern const Spi_PeriphConfig SPI_CFG1;
+
+typedef struct {
+    uint32_t nss_port;
+    uint32_t nss_pin;
+} NSS_IO;
+
+enum class SpiMode { Master, Slave };
+class SpiDevBase {
+   public:
+    enum class SpiEnum {
+        Spi1,
+        Spi2,
+        Spi3,
+        // Spi4,
+        // Spi5,
+
+        SpiNum
+    };
+
+    Queue<uint8_t>* __rx_buffer = nullptr;
+    Queue<uint8_t>* __tx_buffer = nullptr;
+    Spi_IOConfig __cfg;
+    SpiMode __mode;
+    uint8_t __irqn;
+    uint8_t tx_data;
+    long waswoken;
+    void* user_callback_arg;
+    void (*__user_rx_callback)(void* arg) = nullptr;
+    void __rx_isr_callback(uint8_t rx_data) {
+        if (__mode == SpiMode::Slave) {
+            if (__rx_buffer != nullptr) {
+                __rx_buffer->add_ISR(rx_data, waswoken);
+                portYIELD_FROM_ISR(waswoken);
+            }
+            if (__tx_buffer != nullptr) {
+                if (__tx_buffer->pop_ISR(tx_data, waswoken)) {
+                    spi_i2s_data_transmit(__cfg.spi_periph, tx_data);
+                }
+            }
+        }
+        if (__user_rx_callback != nullptr) {
+            __user_rx_callback(user_callback_arg);
+        }
+    }
+
+    SpiDevBase(Spi_IOConfig& cfg, SpiMode mode) : __cfg(cfg), __mode(mode) {
+        if (!__bsp_is_init) {
+            __bsp_is_init = 1;
+            for (uint8_t i = 0; i < (uint8_t)SpiEnum::SpiNum; i++) {
+                __dev[i] = nullptr;
+            }
+        }
+        switch (cfg.spi_periph) {
+            case SPI1:
+                __dev[(uint8_t)SpiEnum::Spi1] = this;
+                __irqn = SPI1_IRQn;
+                break;
+            case SPI2:
+                __dev[(uint8_t)SpiEnum::Spi2] = this;
+                __irqn = SPI2_IRQn;
+                break;
+            case SPI3:
+                __dev[(uint8_t)SpiEnum::Spi3] = this;
+                __irqn = SPI3_IRQn;
+                break;
+            default:
+                break;
+        }
+    };
+    ~SpiDevBase() {};
+    static SpiDevBase* __dev[(uint8_t)SpiEnum::SpiNum];
+    static uint8_t __bsp_is_init;
+
+    //    private:
+};
+
+class SpiMaster : private SpiDevBase {
+   private:
+    std::vector<GPIO> __nss;
+    GPIO __mosi;
+    GPIO __miso;
+    GPIO __sclk;
+    std::vector<GPIO> __nss_init(std::vector<NSS_IO> nss_io) {
+        std::vector<GPIO> nss;
+        for (auto i : nss_io) {
+            nss.push_back(GPIO((GPIO::Port)i.nss_port, (GPIO::Pin)i.nss_pin,
+                               GPIO::Mode::OUTPUT, GPIO::PullUpDown::NONE,
+                               GPIO::OType::PP, GPIO::Speed::SPEED_50MHZ));
+            nss.back().bit_set();
+        }
+        return nss;
+    }
+
+   public:
+    std::vector<uint8_t> rx_buffer;
+    /**
+     * param[in]  prescale: SPI_PSC_n (n=2,4,8,16,32,64,128,256)
+
+    **/
+    SpiMaster(Spi_IOConfig io_cfg, Spi_PeriphConfig spi_cfg,
+              std::vector<NSS_IO> nss_io)
+        : SpiDevBase(io_cfg, SpiMode::Master),
+          __nss(__nss_init(nss_io)),
+          __mosi((GPIO::Port)__cfg.mosi_port, (GPIO::Pin)__cfg.mosi_pin,
+                 GPIO::Mode::AF, GPIO::PullUpDown::NONE, GPIO::OType::PP,
+                 GPIO::Speed::SPEED_50MHZ),
+          __miso((GPIO::Port)__cfg.miso_port, (GPIO::Pin)__cfg.miso_pin,
+                 GPIO::Mode::AF, GPIO::PullUpDown::NONE, GPIO::OType::PP,
+                 GPIO::Speed::SPEED_50MHZ),
+          __sclk((GPIO::Port)__cfg.sclk_port, (GPIO::Pin)__cfg.sclk_pin,
+                 GPIO::Mode::AF, GPIO::PullUpDown::NONE, GPIO::OType::PP,
+                 GPIO::Speed::SPEED_50MHZ) {
+        __mosi.af_set(__cfg.mosi_func_num);
+        __miso.af_set(__cfg.miso_func_num);
+        __sclk.af_set(__cfg.sclk_func_num);
+
+        spi_parameter_struct spi_init_struct;
+        rcu_periph_clock_enable(__cfg.spi_periph_clock);
+        spi_init_struct.trans_mode = SPI_TRANSMODE_FULLDUPLEX;
+        spi_init_struct.device_mode = SPI_MASTER;
+        spi_init_struct.frame_size = spi_cfg.frame_size;
+        spi_init_struct.clock_polarity_phase = spi_cfg.clock_polarity_phase;
+        spi_init_struct.nss = SPI_NSS_SOFT;
+        spi_init_struct.prescale = spi_cfg.prescale;
+        spi_init_struct.endian = spi_cfg.endian;
+        spi_init(__cfg.spi_periph, &spi_init_struct);
+        spi_enable(__cfg.spi_periph);
+        // spi_init();
+    }
+    ~SpiMaster() {};
+
+    void nss_high(uint8_t nss_index = 0) { __nss[nss_index].bit_set(); }
+    void nss_low(uint8_t nss_index = 0) { __nss[nss_index].bit_reset(); }
+
+    bool send(std::vector<uint8_t> tx_data, uint16_t timeout_ms = 1000,
+              uint8_t nss_index = 0) {
+        uint32_t timeout_tick = pdMS_TO_TICKS(timeout_ms);
+        uint32_t txcount = 0;
+        nss_low(nss_index);
+        uint32_t tickstart = xTaskGetTickCount();
+        while (txcount < tx_data.size()) {
+            if (SET == spi_i2s_flag_get(__cfg.spi_periph, SPI_FLAG_TBE)) {
+                spi_i2s_data_transmit(__cfg.spi_periph, tx_data[txcount++]);
+            }
+
+            if (xTaskGetTickCount() - tickstart > timeout_tick) {
+                nss_high(nss_index);
+                return false;
+            }
+        }
+        nss_high(nss_index);
+        return true;
+    }
+
+    bool send_recv(std::vector<uint8_t> tx_data, uint32_t rx_len,
+                   uint16_t timeout_ms = 1000, uint8_t nss_index = 0) {
+        uint32_t tx_size = tx_data.size() > rx_len ? tx_data.size() : rx_len;
+        uint32_t txcount = 0;
+        uint32_t rxcount = 0;
+        uint8_t txallowed = 1;
+        uint32_t timeout_tick = pdMS_TO_TICKS(timeout_ms);
+        rx_buffer.clear();
+        if (rx_len > rx_buffer.capacity()) {
+            rx_buffer.reserve(rx_len);
+        }
+
+        nss_low(nss_index);
+        uint32_t tickstart = xTaskGetTickCount();
+        while ((txcount < tx_size) || (rxcount < rx_len)) {
+            if (txallowed) {
+                txallowed = 0;
+                if (txcount < tx_data.size()) {
+                    spi_i2s_data_transmit(__cfg.spi_periph, tx_data[txcount]);
+                } else {
+                    spi_i2s_data_transmit(__cfg.spi_periph, 0xFF);
+                }
+                txcount++;
+            }
+            if (RESET != spi_i2s_flag_get(__cfg.spi_periph, SPI_FLAG_RBNE) &&
+                rxcount < rx_len) {
+                rx_buffer.push_back(spi_i2s_data_receive(__cfg.spi_periph));
+                rxcount++;
+                txallowed = 1;
+            }
+            if (rxcount >= rx_len &&
+                SET == spi_i2s_flag_get(__cfg.spi_periph, SPI_STAT_TBE)) {
+                txallowed = 1;
+            }
+
+            if (xTaskGetTickCount() - tickstart > timeout_tick) {
+                nss_high(nss_index);
+                return false;
+            }
+        }
+        nss_high(nss_index);
+        return true;
+    }
+};
+
+class SpiSlave : private SpiDevBase {
+   private:
+    GPIO __nss;
+    GPIO __mosi;
+    GPIO __miso;
+    GPIO __sclk;
+
+   public:
+    Queue<uint8_t> tx_buffer;
+    Queue<uint8_t> rx_buffer;
+
+   public:
+    SpiSlave(Spi_IOConfig io_cfg, uint16_t tx_buffer_size,
+             uint16_t rx_buffer_size, Spi_PeriphConfig spi_cfg)
+        : SpiDevBase(io_cfg, SpiMode::Slave),
+          __nss((GPIO::Port)__cfg.nss_port, (GPIO::Pin)__cfg.nss_pin,
+                GPIO::Mode::AF, GPIO::PullUpDown::NONE, GPIO::OType::PP,
+                GPIO::Speed::SPEED_50MHZ),
+          __mosi((GPIO::Port)__cfg.mosi_port, (GPIO::Pin)__cfg.mosi_pin,
+                 GPIO::Mode::AF, GPIO::PullUpDown::NONE, GPIO::OType::PP,
+                 GPIO::Speed::SPEED_50MHZ),
+          __miso((GPIO::Port)__cfg.miso_port, (GPIO::Pin)__cfg.miso_pin,
+                 GPIO::Mode::AF, GPIO::PullUpDown::NONE, GPIO::OType::PP,
+                 GPIO::Speed::SPEED_50MHZ),
+          __sclk((GPIO::Port)__cfg.sclk_port, (GPIO::Pin)__cfg.sclk_pin,
+                 GPIO::Mode::AF, GPIO::PullUpDown::NONE, GPIO::OType::PP,
+                 GPIO::Speed::SPEED_50MHZ),
+          tx_buffer(tx_buffer_size),
+          rx_buffer(rx_buffer_size) {
+        __nss.af_set(__cfg.nss_func_num);
+        __mosi.af_set(__cfg.mosi_func_num);
+        __miso.af_set(__cfg.miso_func_num);
+        __sclk.af_set(__cfg.sclk_func_num);
+        __rx_buffer = &this->rx_buffer;
+        __tx_buffer = &this->tx_buffer;
+        spi_parameter_struct spi_init_struct;
+        rcu_periph_clock_enable(__cfg.spi_periph_clock);
+        spi_init_struct.trans_mode = SPI_TRANSMODE_FULLDUPLEX;
+        spi_init_struct.device_mode = SPI_SLAVE;
+        spi_init_struct.frame_size = spi_cfg.frame_size;
+        spi_init_struct.clock_polarity_phase = spi_cfg.clock_polarity_phase;
+        spi_init_struct.nss = SPI_NSS_SOFT;
+        spi_init_struct.prescale = spi_cfg.prescale;
+        spi_init_struct.endian = spi_cfg.endian;
+        spi_init(__cfg.spi_periph, &spi_init_struct);
+        spi_enable(__cfg.spi_periph);
+
+        nvic_irq_enable(__irqn, 10, 0);
+        spi_i2s_interrupt_enable(__cfg.spi_periph, SPI_I2S_INT_RBNE);
+        // spi_i2s_interrupt_enable(__cfg.spi_periph, SPI_I2S_INT_TBE);
+    }
+    void set_rx_callback(void (*callback)(void* arg), void* arg) {
+        __user_rx_callback = callback;
+        user_callback_arg = arg;
+    }
+    bool send(uint8_t* tx_data, uint16_t len, uint16_t timeout_ms = 1000) {
+        while (__tx_count < len) {
+            if (__tx_count == 0) {
+                // 直接加载第一个字节
+                if (SET == spi_i2s_flag_get(__cfg.spi_periph, SPI_FLAG_TBE)) {
+                    spi_i2s_data_transmit(__cfg.spi_periph,
+                                          tx_data[__tx_count++]);
+                }
+            } else {
+                if (xPortIsInsideInterrupt() == pdTRUE) {
+                    tx_buffer.add_ISR(tx_data[__tx_count], waswoken);
+                } else {
+                    tx_buffer.add(tx_data[__tx_count]);
+                }
+                __tx_count++;
+            }
+        }
+
+        if (xPortIsInsideInterrupt() == pdTRUE) {
+            if (tx_buffer.empty_ISR() &&
+                (SET == spi_i2s_flag_get(__cfg.spi_periph, SPI_FLAG_TBE))) {
+                __tx_count = 0;
+                return true;
+            }
+        } else {
+            if (tx_buffer.empty() &&
+                SET == spi_i2s_flag_get(__cfg.spi_periph, SPI_FLAG_TBE)) {
+                __tx_count = 0;
+                return true;
+            }
+        }
+        return false;
+    }
+
+   private:
+    uint16_t __tx_count = 0;
+    long waswoken;
+};
+
+extern "C" {
+void SPI1_IRQHandler(void);
+void SPI2_IRQHandler(void);
+void SPI3_IRQHandler(void);
+}
+template <SpiMode mode>
+class SpiDev : public std::conditional<mode == SpiMode::Master, SpiMaster,
+                                       SpiSlave>::type {
+   public:
+    template <typename Enable = void,
+              std::enable_if_t<mode == SpiMode::Master, Enable>* = nullptr>
+    SpiDev(Spi_IOConfig io_cfg, std::vector<NSS_IO> nss_io,
+           Spi_PeriphConfig spi_cfg = SPI_CFG1)
+        : SpiMaster(io_cfg, spi_cfg, nss_io) {}
+
+    template <typename Enable = void,
+              std::enable_if_t<mode == SpiMode::Slave, Enable>* = nullptr>
+    SpiDev(Spi_IOConfig io_cfg, uint16_t tx_buffer_size = 256,
+           uint16_t rx_buffer_size = 256, Spi_PeriphConfig spi_cfg = SPI_CFG1)
+        : SpiSlave(io_cfg, tx_buffer_size, rx_buffer_size, spi_cfg) {}
+    ~SpiDev() {};
+
+    void enable() { spi_enable(this->__cfg.spi_periph); }
+    void disable() { spi_disable(this->__cfg.spi_periph); }
+    friend void SPI1_IRQHandler(void);
+    friend void SPI2_IRQHandler(void);
+    friend void SPI3_IRQHandler(void);
+
+   private:
+};
+
+#endif

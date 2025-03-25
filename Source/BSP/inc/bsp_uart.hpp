@@ -1,4 +1,7 @@
 // #include "cstdio.h"
+#ifndef BSP_UART_HPP
+#define BSP_UART_HPP
+
 #include <cstdint>
 #include <cstring>
 #include <string>
@@ -26,6 +29,7 @@ typedef struct {
     uint8_t gpio_af;                    // GPIO复用功能
     rcu_periph_enum rcu_dma_periph;     // DMA发送通道
     uint32_t dma_periph;                // DMA发送通道
+    dma_subperipheral_enum dma_sub_per; // DMA子通道
     dma_channel_enum dma_tx_channel;    // DMA发送通道
     dma_channel_enum dma_rx_channel;    // DMA接收通道
     uint8_t nvic_irq;                   // NVIC中断号
@@ -72,6 +76,12 @@ class UartConfig {
           nvic_irq_sub_priority(info.nvic_irq_sub_priority),
           rx_count(&info.rx_count) {}    // 传递 rx_count 指针
 };
+
+extern UasrtInfo usart0_info;
+extern UasrtInfo usart1_info;
+extern UasrtInfo usart2_info;
+extern UasrtInfo uart3_info;
+extern UasrtInfo uart6_info;
 
 class Uart {
    public:
@@ -174,3 +184,4 @@ class Uart {
         dma_channel_enable(config.dma_periph, config.dma_rx_channel);
     }
 };
+#endif

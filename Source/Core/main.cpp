@@ -17,19 +17,26 @@ extern "C" {
 }
 #endif
 
-extern UasrtInfo usart1_info;
-UartConfig uart1Conf(usart1_info);
-Uart uart1(uart1Conf);
+UartConfig usart0Conf(usart0_info);
+UartConfig usart1Conf(usart1_info);
+UartConfig usart2Conf(usart2_info);
+UartConfig uart3Conf(uart3_info);
+Uart usart0(usart0Conf);
+Uart usart1(usart1Conf);
+Uart usart2(usart2Conf);
+Uart uart3(uart3Conf);
+
+Logger Log(usart0);
 
 class LedBlinkTask : public TaskClassS<1024> {
    public:
     LedBlinkTask() : TaskClassS<1024>("LedBlinkTask", TaskPrio_Mid) {}
 
     void task() override {
-        Logger &log = Logger::getInstance();
         LED led0(GPIOC, GPIO_PIN_6);
 
         for (;;) {
+            Log.d("LedBlinkTask");
             led0.toggle();
             TaskBase::delay(500);
         }
@@ -41,17 +48,17 @@ class UsartDMATask : public TaskClassS<1024> {
     UsartDMATask() : TaskClassS<1024>("UsartDMATask", TaskPrio_Mid) {}
 
     void task() override {
-        Logger &log = Logger::getInstance();
         for (;;) {
             // 等待 DMA 完成信号
-            if (xSemaphoreTake(usart1_info.dmaRxDoneSema, portMAX_DELAY) == pdPASS) {
-                log.d("Usart recv.");
+            if (xSemaphoreTake(usart0_info.dmaRxDoneSema, portMAX_DELAY) ==
+                pdPASS) {
+                Log.d("Usart recv.");
                 uint8_t buffer[DMA_RX_BUFFER_SIZE];
                 uint16_t len =
-                    uart1.getReceivedData(buffer, DMA_RX_BUFFER_SIZE);
+                    usart0.getReceivedData(buffer, DMA_RX_BUFFER_SIZE);
                 if (len > 0) {
                     // dma tx the data recv
-                    uart1.send(buffer, len);
+                    usart0.send(buffer, len);
                 }
             }
         }
@@ -64,13 +71,13 @@ class LogTask : public TaskClassS<1024> {
 
     void task() override {
         char buffer[LOG_QUEUE_SIZE + 8];
-        Logger &log = Logger::getInstance();
         for (;;) {
-            if (xQueueReceive(log.logQueue, buffer, portMAX_DELAY)) {
-                for (const char *p = buffer; *p; ++p) {
-                    while (RESET == usart_flag_get(USART_LOG, USART_FLAG_TBE));
-                    usart_data_transmit(USART_LOG, (uint8_t)*p);
-                }
+            LogMessage logMsg;
+            // 从队列中获取日志消息
+            if (Log.logQueue.pop(logMsg, portMAX_DELAY)) {
+                Log.uart.send(
+                    reinterpret_cast<const uint8_t *>(logMsg.message.data()),
+                    strlen(logMsg.message.data()));
             }
         }
     }

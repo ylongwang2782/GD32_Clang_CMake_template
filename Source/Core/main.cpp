@@ -50,15 +50,15 @@ class UsartDMATask : public TaskClassS<1024> {
     void task() override {
         for (;;) {
             // 等待 DMA 完成信号
-            if (xSemaphoreTake(usart1_info.dmaRxDoneSema, portMAX_DELAY) ==
+            if (xSemaphoreTake(usart0_info.dmaRxDoneSema, portMAX_DELAY) ==
                 pdPASS) {
                 Log.d("Usart recv.");
                 uint8_t buffer[DMA_RX_BUFFER_SIZE];
                 uint16_t len =
-                    usart1.getReceivedData(buffer, DMA_RX_BUFFER_SIZE);
+                    usart0.getReceivedData(buffer, DMA_RX_BUFFER_SIZE);
                 if (len > 0) {
                     // dma tx the data recv
-                    usart1.send(buffer, len);
+                    usart0.send(buffer, len);
                 }
             }
         }

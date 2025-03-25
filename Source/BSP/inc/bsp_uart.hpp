@@ -1,4 +1,7 @@
 // #include "cstdio.h"
+#ifndef BSP_UART_HPP
+#define BSP_UART_HPP
+
 #include <cstdint>
 #include <cstring>
 #include <string>
@@ -72,6 +75,11 @@ class UartConfig {
           nvic_irq_sub_priority(info.nvic_irq_sub_priority),
           rx_count(&info.rx_count) {}    // 传递 rx_count 指针
 };
+
+extern UasrtInfo usart0_info;
+extern UasrtInfo usart1_info;
+extern UasrtInfo usart2_info;
+extern UasrtInfo uart3_info;
 
 class Uart {
    public:
@@ -174,3 +182,4 @@ class Uart {
         dma_channel_enable(config.dma_periph, config.dma_rx_channel);
     }
 };
+#endif

@@ -1,3 +1,4 @@
+#include <array>
 #include <cstdint>
 #include <cstdio>
 
@@ -5,6 +6,7 @@
 #include "TaskCpp.h"
 #include "bsp_led.hpp"
 #include "bsp_log.hpp"
+#include "bsp_spi.hpp"
 #include "bsp_uid.hpp"
 
 #ifdef __cplusplus
@@ -65,6 +67,51 @@ class UsartDMATask : public TaskClassS<1024> {
     }
 };
 
+class SpiTask : public TaskClassS<1024> {
+   public:
+    SpiTask() : TaskClassS<1024>("SpiTask", TaskPrio_Mid) {}
+
+    void task() override {
+        // Master
+        std::vector<NSS_IO> nss_pins = {
+            {GPIOB, GPIO_PIN_13}    // NSS引脚在PB12
+        };
+
+        SpiDev<SpiMode::Master> spiMaster(SPI1_C1MOSI_C2MISO_B10SCLK_B12NSS,
+                                          nss_pins);
+        // spiMaster.enable();
+
+        // Slave
+        SpiDev<SpiMode::Slave> spiSlave(SPI3_E5MOSI_E6MISO_E2SCLK_E11NSS);
+        // spiSlave.enable();
+
+        uint8_t spiData[9] = {0x01, 0x02, 0x03, 0x04, 0x05,
+                              0x06, 0x07, 0x08, 0x09};
+        // spi master recv buffer
+        std::vector<uint8_t> spiSendData = {0x01, 0x02, 0x03, 0x04,
+                                            0x05, 0x06, 0x07, 0x08};
+        std::vector<uint8_t> spiRecvData;
+
+        for (;;) {
+            spiSlave.send(spiData, sizeof(spiData));    // 等待发送完成
+
+            if (!spiMaster.send_recv(spiSendData, sizeof(spiData))) {
+                Log.d("spiMaster send failed.");
+            } else {
+                Log.d("spiMaster send success.");
+            }
+            // spiRecvData = spiMaster.rx_buffer;
+
+            // Log spiRecvData
+            for (size_t i = 0; i < spiMaster.rx_buffer.size(); i++) {
+                Log.d("spiRecvData[%d] = %d", i, spiMaster.rx_buffer[i]);
+            }
+
+            TaskBase::delay(500);
+        }
+    }
+};
+
 class LogTask : public TaskClassS<1024> {
    public:
     LogTask() : TaskClassS<1024>("LogTask", TaskPrio_Mid) {}
@@ -86,6 +133,7 @@ class LogTask : public TaskClassS<1024> {
 LedBlinkTask ledBlinkTask;
 UsartDMATask usartDMATask;
 LogTask logTask;
+SpiTask spiTask;
 
 int main(void) {
     nvic_priority_group_set(NVIC_PRIGROUP_PRE4_SUB0);

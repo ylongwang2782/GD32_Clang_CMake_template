@@ -294,7 +294,7 @@ class SpiSlave : private SpiDevBase {
     Queue<uint8_t> rx_queue;
 
    private:
-   Queue<uint8_t> tx_queue;
+    Queue<uint8_t> tx_queue;
     uint16_t __tx_count = 0;
     long waswoken;
 
@@ -345,12 +345,12 @@ class SpiSlave : private SpiDevBase {
 
     bool send(uint8_t* tx_data, uint16_t len, uint16_t timeout_ms = 1000) {
         __load_tx_data(tx_data, len);
-        return __check_tx_done();
+        return __check_tx_done(timeout_ms);
     }
 
     bool send(std::vector<uint8_t> tx_data, uint16_t timeout_ms = 1000) {
         __load_tx_data(tx_data.data(), tx_data.size());
-        return __check_tx_done();
+        return __check_tx_done(timeout_ms);
     }
 
    private:
@@ -373,20 +373,33 @@ class SpiSlave : private SpiDevBase {
         }
     }
 
-    bool __check_tx_done() {
-        if (xPortIsInsideInterrupt() == pdTRUE) {
-            if (tx_queue.empty_ISR() &&
-                (SET == spi_i2s_flag_get(__cfg.spi_periph, SPI_FLAG_TBE))) {
-                __tx_count = 0;
-                return true;
-            }
-        } else {
-            if (tx_queue.empty() &&
-                SET == spi_i2s_flag_get(__cfg.spi_periph, SPI_FLAG_TBE)) {
-                __tx_count = 0;
-                return true;
+    bool __check_tx_done(uint16_t timeout_ms) {
+        uint32_t timeout_tick = pdMS_TO_TICKS(timeout_ms);
+        uint32_t tickstart = xTaskGetTickCount();
+
+        while ((xTaskGetTickCount() - tickstart < timeout_tick) ||
+               (timeout_ms == 0)) {
+            if (xPortIsInsideInterrupt() == pdTRUE) {
+                if (tx_queue.empty_ISR() &&
+                    (SET == spi_i2s_flag_get(__cfg.spi_periph, SPI_FLAG_TBE))) {
+                    __tx_count = 0;
+                    return true;
+                } else {
+                    if (timeout_ms == 0) {
+                        return false;
+                    }
+                }
+            } else {
+                if (tx_queue.empty() &&
+                    SET == spi_i2s_flag_get(__cfg.spi_periph, SPI_FLAG_TBE)) {
+                    __tx_count = 0;
+                    return true;
+                } else if (timeout_ms == 0) {
+                    return false;
+                }
             }
         }
+
         return false;
     }
 };

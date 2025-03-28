@@ -102,7 +102,7 @@ class SpiTask : public TaskClassS<1024> {
         std::vector<uint8_t> spiRecvData;
 
         for (;;) {
-            spiSlave.send(spiSlaveData);    // 等待发送完成
+            spiSlave.send(spiSlaveData,0);    // 等待发送完成
 
             if(!spiMaster.recv(spiSlaveData.size())){
         //    if(!spiMaster.send_recv(spiMasterData,spiSlaveData.size())) {

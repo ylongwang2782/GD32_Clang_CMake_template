@@ -28,7 +28,7 @@ Uart usart1(usart1Conf);
 Uart usart2(usart2Conf);
 Uart uart3(uart3Conf);
 
-Logger Log(usart0);
+Logger Log(usart1);
 
 class LedBlinkTask : public TaskClassS<1024> {
    public:
@@ -71,6 +71,16 @@ class SpiTask : public TaskClassS<1024> {
    public:
     SpiTask() : TaskClassS<1024>("SpiTask", TaskPrio_Mid) {}
 
+    static void spiCallback(void *arg) {
+        SpiDev<SpiMode::Slave> *dev = (SpiDev<SpiMode::Slave> *)arg;
+        if (!dev->rx_queue.empty_ISR()) {
+            uint8_t rxData;
+            long worken;
+            dev->rx_queue.pop_ISR(rxData, worken);
+            dev->send(&rxData, 1);
+        }
+    }
+
     void task() override {
         // Master
         std::vector<NSS_IO> nss_pins = {
@@ -79,33 +89,38 @@ class SpiTask : public TaskClassS<1024> {
 
         SpiDev<SpiMode::Master> spiMaster(SPI1_C1MOSI_C2MISO_B10SCLK_B12NSS,
                                           nss_pins);
-        // spiMaster.enable();
 
         // Slave
-        SpiDev<SpiMode::Slave> spiSlave(SPI3_E5MOSI_E6MISO_E2SCLK_E11NSS);
+        SpiDev<SpiMode::Slave> spiSlave(SPI3_E6MOSI_E5MISO_E2SCLK_E11NSS);
         // spiSlave.enable();
 
-        uint8_t spiData[9] = {0x01, 0x02, 0x03, 0x04, 0x05,
+        std::vector<uint8_t> spiSlaveData = {0x01, 0x02, 0x03, 0x04, 0x05,
                               0x06, 0x07, 0x08, 0x09};
         // spi master recv buffer
-        std::vector<uint8_t> spiSendData = {0x01, 0x02, 0x03, 0x04,
+        std::vector<uint8_t> spiMasterData = {0x01, 0x02, 0x03, 0x04,
                                             0x05, 0x06, 0x07, 0x08};
         std::vector<uint8_t> spiRecvData;
 
         for (;;) {
-            spiSlave.send(spiData, sizeof(spiData));    // 等待发送完成
+            spiSlave.send(spiSlaveData);    // 等待发送完成
 
-            if (!spiMaster.send_recv(spiSendData, sizeof(spiData))) {
-                Log.d("spiMaster send failed.");
+            if(!spiMaster.recv(spiSlaveData.size())){
+        //    if(!spiMaster.send_recv(spiMasterData,spiSlaveData.size())) {
+                 Log.d("spiMaster send failed.");
+
             } else {
                 Log.d("spiMaster send success.");
+                for (auto data : spiMaster.rx_buffer) {
+                    Log.d("spiMaster recv data: %d", data);
+                }
+            }
+
+            while (!spiSlave.rx_queue.empty()) {
+                uint8_t data;
+                spiSlave.rx_queue.pop(data);
+                Log.d("spiSlave recv data: %d", data);
             }
             // spiRecvData = spiMaster.rx_buffer;
-
-            // Log spiRecvData
-            for (size_t i = 0; i < spiMaster.rx_buffer.size(); i++) {
-                Log.d("spiRecvData[%d] = %d", i, spiMaster.rx_buffer[i]);
-            }
 
             TaskBase::delay(500);
         }

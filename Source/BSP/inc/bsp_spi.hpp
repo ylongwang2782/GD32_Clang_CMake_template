@@ -4,7 +4,6 @@
 #include <type_traits>
 #include <vector>
 
-#include "FreeRTOS.h"
 #include "QueueCpp.h"
 #include "bsp_gpio.hpp"
 #include "gd32f4xx.h"
@@ -48,7 +47,7 @@ typedef struct {
 
 extern const Spi_IOConfig SPI1_C1MOSI_C2MISO_B10SCLK_B12NSS;
 extern const Spi_IOConfig SPI1_C1MOSI_C2MISO_C7SCLK_B12NSS;
-extern const Spi_IOConfig SPI3_E5MOSI_E6MISO_E2SCLK_E11NSS;
+extern const Spi_IOConfig SPI3_E6MOSI_E5MISO_E2SCLK_E11NSS;
 
 extern const Spi_PeriphConfig SPI_CFG1;
 
@@ -60,42 +59,6 @@ typedef struct {
 enum class SpiMode { Master, Slave };
 class SpiDevBase {
    public:
-    enum class SpiEnum {
-        Spi1,
-        Spi2,
-        Spi3,
-        // Spi4,
-        // Spi5,
-
-        SpiNum
-    };
-
-    Queue<uint8_t>* __rx_buffer = nullptr;
-    Queue<uint8_t>* __tx_buffer = nullptr;
-    Spi_IOConfig __cfg;
-    SpiMode __mode;
-    uint8_t __irqn;
-    uint8_t tx_data;
-    long waswoken;
-    void* user_callback_arg;
-    void (*__user_rx_callback)(void* arg) = nullptr;
-    void __rx_isr_callback(uint8_t rx_data) {
-        if (__mode == SpiMode::Slave) {
-            if (__rx_buffer != nullptr) {
-                __rx_buffer->add_ISR(rx_data, waswoken);
-                portYIELD_FROM_ISR(waswoken);
-            }
-            if (__tx_buffer != nullptr) {
-                if (__tx_buffer->pop_ISR(tx_data, waswoken)) {
-                    spi_i2s_data_transmit(__cfg.spi_periph, tx_data);
-                }
-            }
-        }
-        if (__user_rx_callback != nullptr) {
-            __user_rx_callback(user_callback_arg);
-        }
-    }
-
     SpiDevBase(Spi_IOConfig& cfg, SpiMode mode) : __cfg(cfg), __mode(mode) {
         if (!__bsp_is_init) {
             __bsp_is_init = 1;
@@ -121,8 +84,48 @@ class SpiDevBase {
         }
     };
     ~SpiDevBase() {};
+
+   public:
+    enum class SpiEnum {
+        Spi1,
+        Spi2,
+        Spi3,
+        // Spi4,
+        // Spi5,
+
+        SpiNum
+    };
+    Queue<uint8_t>* __rx_buffer = nullptr;
+    Queue<uint8_t>* __tx_buffer = nullptr;
+    Spi_IOConfig __cfg;
+    SpiMode __mode;
+    uint8_t __irqn;
+    uint8_t tx_data;
+    long waswoken;
+    void* user_callback_arg;
+    void (*__user_rx_callback)(void* arg) = nullptr;
+
     static SpiDevBase* __dev[(uint8_t)SpiEnum::SpiNum];
     static uint8_t __bsp_is_init;
+
+   public:
+    void __rx_isr_callback(uint8_t rx_data) {
+        if (__mode == SpiMode::Slave) {
+            if (__rx_buffer != nullptr) {
+                __rx_buffer->add_ISR(rx_data, waswoken);
+                portYIELD_FROM_ISR(waswoken);
+            }
+            if (__tx_buffer != nullptr) {
+                if (__tx_buffer->pop_ISR(tx_data, waswoken)) {
+                    spi_i2s_data_transmit(__cfg.spi_periph, tx_data);
+                }
+            }
+        }
+        if (__user_rx_callback != nullptr) {
+            __user_rx_callback(user_callback_arg);
+        }
+    }
+    uint32_t get_spi_periph() const { return __cfg.spi_periph; }
 
     //    private:
 };
@@ -205,6 +208,36 @@ class SpiMaster : private SpiDevBase {
         return true;
     }
 
+    bool recv(uint32_t rx_len, uint16_t timeout_ms = 1000,
+              uint8_t nss_index = 0) {
+        uint32_t timeout_tick = pdMS_TO_TICKS(timeout_ms);
+        uint32_t rxcount = 0;
+        uint8_t txallowed = 1;
+        rx_buffer.clear();
+        if (rx_len > rx_buffer.capacity()) {
+            rx_buffer.reserve(rx_len);
+        }
+        nss_low(nss_index);
+        uint32_t tickstart = xTaskGetTickCount();
+        while (rxcount < rx_len) {
+            if (txallowed) {
+                txallowed = 0;
+                spi_i2s_data_transmit(__cfg.spi_periph, 0xFF);
+            }
+            if (RESET != spi_i2s_flag_get(__cfg.spi_periph, SPI_FLAG_RBNE)) {
+                rx_buffer.push_back(spi_i2s_data_receive(__cfg.spi_periph));
+                rxcount++;
+                txallowed = 1;
+            }
+            if (xTaskGetTickCount() - tickstart > timeout_tick) {
+                nss_high(nss_index);
+                return false;
+            }
+        }
+
+        nss_high(nss_index);
+        return true;
+    }
     bool send_recv(std::vector<uint8_t> tx_data, uint32_t rx_len,
                    uint16_t timeout_ms = 1000, uint8_t nss_index = 0) {
         uint32_t tx_size = tx_data.size() > rx_len ? tx_data.size() : rx_len;
@@ -258,8 +291,12 @@ class SpiSlave : private SpiDevBase {
     GPIO __sclk;
 
    public:
-    Queue<uint8_t> tx_buffer;
-    Queue<uint8_t> rx_buffer;
+    Queue<uint8_t> rx_queue;
+
+   private:
+    Queue<uint8_t> tx_queue;
+    uint16_t __tx_count = 0;
+    long waswoken;
 
    public:
     SpiSlave(Spi_IOConfig io_cfg, uint16_t tx_buffer_size,
@@ -277,14 +314,14 @@ class SpiSlave : private SpiDevBase {
           __sclk((GPIO::Port)__cfg.sclk_port, (GPIO::Pin)__cfg.sclk_pin,
                  GPIO::Mode::AF, GPIO::PullUpDown::NONE, GPIO::OType::PP,
                  GPIO::Speed::SPEED_50MHZ),
-          tx_buffer(tx_buffer_size),
-          rx_buffer(rx_buffer_size) {
+          rx_queue(tx_buffer_size),
+          tx_queue(rx_buffer_size) {
         __nss.af_set(__cfg.nss_func_num);
         __mosi.af_set(__cfg.mosi_func_num);
         __miso.af_set(__cfg.miso_func_num);
         __sclk.af_set(__cfg.sclk_func_num);
-        __rx_buffer = &this->rx_buffer;
-        __tx_buffer = &this->tx_buffer;
+        __rx_buffer = &this->rx_queue;
+        __tx_buffer = &this->tx_queue;
         spi_parameter_struct spi_init_struct;
         rcu_periph_clock_enable(__cfg.spi_periph_clock);
         spi_init_struct.trans_mode = SPI_TRANSMODE_FULLDUPLEX;
@@ -305,43 +342,66 @@ class SpiSlave : private SpiDevBase {
         __user_rx_callback = callback;
         user_callback_arg = arg;
     }
+
     bool send(uint8_t* tx_data, uint16_t len, uint16_t timeout_ms = 1000) {
+        __load_tx_data(tx_data, len);
+        return __check_tx_done(timeout_ms);
+    }
+
+    bool send(std::vector<uint8_t> tx_data, uint16_t timeout_ms = 1000) {
+        __load_tx_data(tx_data.data(), tx_data.size());
+        return __check_tx_done(timeout_ms);
+    }
+
+   private:
+    void __load_tx_data(uint8_t* tx_data, uint16_t len) {
+        __tx_count = 0;
         while (__tx_count < len) {
-            if (__tx_count == 0) {
+            if (__tx_count == 0 &&
+                SET == spi_i2s_flag_get(__cfg.spi_periph, SPI_FLAG_TBE)) {
                 // 直接加载第一个字节
-                if (SET == spi_i2s_flag_get(__cfg.spi_periph, SPI_FLAG_TBE)) {
-                    spi_i2s_data_transmit(__cfg.spi_periph,
-                                          tx_data[__tx_count++]);
-                }
+                spi_i2s_data_transmit(__cfg.spi_periph, tx_data[__tx_count++]);
+
             } else {
                 if (xPortIsInsideInterrupt() == pdTRUE) {
-                    tx_buffer.add_ISR(tx_data[__tx_count], waswoken);
+                    tx_queue.add_ISR(tx_data[__tx_count], waswoken);
                 } else {
-                    tx_buffer.add(tx_data[__tx_count]);
+                    tx_queue.add(tx_data[__tx_count]);
                 }
                 __tx_count++;
             }
         }
-
-        if (xPortIsInsideInterrupt() == pdTRUE) {
-            if (tx_buffer.empty_ISR() &&
-                (SET == spi_i2s_flag_get(__cfg.spi_periph, SPI_FLAG_TBE))) {
-                __tx_count = 0;
-                return true;
-            }
-        } else {
-            if (tx_buffer.empty() &&
-                SET == spi_i2s_flag_get(__cfg.spi_periph, SPI_FLAG_TBE)) {
-                __tx_count = 0;
-                return true;
-            }
-        }
-        return false;
     }
 
-   private:
-    uint16_t __tx_count = 0;
-    long waswoken;
+    bool __check_tx_done(uint16_t timeout_ms) {
+        uint32_t timeout_tick = pdMS_TO_TICKS(timeout_ms);
+        uint32_t tickstart = xTaskGetTickCount();
+
+        while ((xTaskGetTickCount() - tickstart < timeout_tick) ||
+               (timeout_ms == 0)) {
+            if (xPortIsInsideInterrupt() == pdTRUE) {
+                if (tx_queue.empty_ISR() &&
+                    (SET == spi_i2s_flag_get(__cfg.spi_periph, SPI_FLAG_TBE))) {
+                    __tx_count = 0;
+                    return true;
+                } else {
+                    if (timeout_ms == 0) {
+                        return false;
+                    }
+                }
+            } else {
+                if (tx_queue.empty() &&
+                    SET == spi_i2s_flag_get(__cfg.spi_periph, SPI_FLAG_TBE)) {
+                    __tx_count = 0;
+                    return true;
+                } else if (timeout_ms == 0) {
+                    return false;
+                }
+            }
+        }
+
+        return false;
+    }
 };
 
 extern "C" {
@@ -357,22 +417,24 @@ class SpiDev : public std::conditional<mode == SpiMode::Master, SpiMaster,
               std::enable_if_t<mode == SpiMode::Master, Enable>* = nullptr>
     SpiDev(Spi_IOConfig io_cfg, std::vector<NSS_IO> nss_io,
            Spi_PeriphConfig spi_cfg = SPI_CFG1)
-        : SpiMaster(io_cfg, spi_cfg, nss_io) {}
+        : SpiMaster(io_cfg, spi_cfg, nss_io), __cfg(io_cfg) {}
 
     template <typename Enable = void,
               std::enable_if_t<mode == SpiMode::Slave, Enable>* = nullptr>
     SpiDev(Spi_IOConfig io_cfg, uint16_t tx_buffer_size = 256,
            uint16_t rx_buffer_size = 256, Spi_PeriphConfig spi_cfg = SPI_CFG1)
-        : SpiSlave(io_cfg, tx_buffer_size, rx_buffer_size, spi_cfg) {}
+        : SpiSlave(io_cfg, tx_buffer_size, rx_buffer_size, spi_cfg),
+          __cfg(io_cfg) {}
     ~SpiDev() {};
 
-    void enable() { spi_enable(this->__cfg.spi_periph); }
-    void disable() { spi_disable(this->__cfg.spi_periph); }
+    void enable() { spi_enable(__cfg.spi_periph); }
+    void disable() { spi_disable(__cfg.spi_periph); }
     friend void SPI1_IRQHandler(void);
     friend void SPI2_IRQHandler(void);
     friend void SPI3_IRQHandler(void);
 
    private:
+    Spi_IOConfig __cfg;
 };
 
 #endif

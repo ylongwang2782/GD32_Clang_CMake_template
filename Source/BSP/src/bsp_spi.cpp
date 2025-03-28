@@ -65,16 +65,16 @@ const Spi_IOConfig SPI2_B5MOSI_B4MISO_B3SCLK_A4NSS = {
     .nss_func_num = GPIO_AF_6,
 };
 
-const Spi_IOConfig SPI3_E5MOSI_E6MISO_E2SCLK_E11NSS = {
+const Spi_IOConfig SPI3_E6MOSI_E5MISO_E2SCLK_E11NSS = {
     .spi_periph = SPI3,
     .spi_periph_clock = RCU_SPI3,
 
     .mosi_port = GPIOE,
-    .mosi_pin = GPIO_PIN_5,
+    .mosi_pin = GPIO_PIN_6,
     .mosi_func_num = GPIO_AF_5,
 
     .miso_port = GPIOE,
-    .miso_pin = GPIO_PIN_6,
+    .miso_pin = GPIO_PIN_5,
     .miso_func_num = GPIO_AF_5,
 
     .sclk_port = GPIOE,

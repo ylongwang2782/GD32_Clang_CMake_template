@@ -3,6 +3,7 @@
 
 #include "TaskCPP.h"
 #include "TaskCpp.h"
+#include "bsp_adc.hpp"
 #include "bsp_led.hpp"
 #include "bsp_log.hpp"
 #include "bsp_uid.hpp"
@@ -34,8 +35,26 @@ class LedBlinkTask : public TaskClassS<1024> {
 
     void task() override {
         LED led0(GPIOC, GPIO_PIN_6);
+        // AdcSingleConversion
+        // AdcSingleConversion adc1(GPIOA, GPIO_PIN_2, ADC0);
+        // adc1.init();
+
+        // ADCSingleMultiScanDMA
+        // uint8_t adcChannelCounts = 16;
+        // ADCSingleMultiScanDMA adc0;
 
         for (;;) {
+            
+            // AdcSingleConversion
+            // adc1.read();
+            // Log.d("adc: %d", adc1.value);
+
+            // ADCSingleMultiScanDMA
+            // adc0.trigger_scan();
+            // for (size_t i = 0; i < adc0.adc_values.size(); ++i) {
+            //     Log.d("adc[%d]: %d", i, adc0.adc_values[i]);
+            // }
+
             Log.d("LedBlinkTask");
             led0.toggle();
             TaskBase::delay(500);

@@ -2,7 +2,7 @@
 
 #include <cstdio>
 
-UasrtInfo usart0_info = {.baudrate = 115200,
+UasrtInfo usart0_info = {.baudrate = 921600,
                          .gpio_port = GPIOB,
                          .tx_pin = GPIO_PIN_6,
                          .rx_pin = GPIO_PIN_7,
@@ -21,7 +21,7 @@ UasrtInfo usart0_info = {.baudrate = 115200,
                          .rx_count = 0,
                          .dmaRxDoneSema = xSemaphoreCreateBinary()};
 
-UasrtInfo usart1_info = {.baudrate = 115200,
+UasrtInfo usart1_info = {.baudrate = 921600,
                          .gpio_port = GPIOD,
                          .tx_pin = GPIO_PIN_5,
                          .rx_pin = GPIO_PIN_6,
@@ -40,7 +40,7 @@ UasrtInfo usart1_info = {.baudrate = 115200,
                          .rx_count = 0,
                          .dmaRxDoneSema = xSemaphoreCreateBinary()};
 
-UasrtInfo usart2_info = {.baudrate = 115200,
+UasrtInfo usart2_info = {.baudrate = 921600,
                          .gpio_port = GPIOB,
                          .tx_pin = GPIO_PIN_10,
                          .rx_pin = GPIO_PIN_11,
@@ -59,7 +59,7 @@ UasrtInfo usart2_info = {.baudrate = 115200,
                          .rx_count = 0,
                          .dmaRxDoneSema = xSemaphoreCreateBinary()};
 
-UasrtInfo uart3_info = {.baudrate = 115200,
+UasrtInfo uart3_info = {.baudrate = 921600,
                         .gpio_port = GPIOA,
                         .tx_pin = GPIO_PIN_0,
                         .rx_pin = GPIO_PIN_1,
@@ -78,7 +78,7 @@ UasrtInfo uart3_info = {.baudrate = 115200,
                         .rx_count = 0,
                         .dmaRxDoneSema = xSemaphoreCreateBinary()};
 
-UasrtInfo uart6_info = {.baudrate = 115200,
+UasrtInfo uart6_info = {.baudrate = 921600,
                         .gpio_port = GPIOF,
                         .tx_pin = GPIO_PIN_6,
                         .rx_pin = GPIO_PIN_7,

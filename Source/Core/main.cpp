@@ -8,6 +8,7 @@
 #include "bsp_log.hpp"
 #include "bsp_spi.hpp"
 #include "bsp_uid.hpp"
+#include "cx310.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,7 +29,7 @@ Uart usart1(usart1Conf);
 Uart usart2(usart2Conf);
 Uart uart3(uart3Conf);
 
-Logger Log(usart1);
+Logger Log(usart0);
 
 class LedBlinkTask : public TaskClassS<1024> {
    public:
@@ -37,9 +38,24 @@ class LedBlinkTask : public TaskClassS<1024> {
     void task() override {
         LED led0(GPIOC, GPIO_PIN_6);
 
+        // Initialize with tag UID (8 bytes)
+        std::vector<uint8_t> tag_uid = {0x07, 0x06, 0x05, 0x04,
+                                        0x03, 0x02, 0x01, 0x00};
+        UWBPacketBuilder builder(tag_uid);
+
+        // User data to transmit (Hex: 01 02)
+        std::vector<uint8_t> user_data = {0x01, 0x02};
+
+        // Build the complete UWB packet
+
         for (;;) {
-            Log.d("LedBlinkTask");
+            // Log.d("LedBlinkTask");
             led0.toggle();
+
+            // uwb packet test
+            std::vector<uint8_t> uwb_packet =
+                builder.buildUplinkPacket(user_data);
+
             TaskBase::delay(500);
         }
     }
@@ -95,18 +111,19 @@ class SpiTask : public TaskClassS<1024> {
         // spiSlave.enable();
 
         std::vector<uint8_t> spiSlaveData = {0x01, 0x02, 0x03, 0x04, 0x05,
-                              0x06, 0x07, 0x08, 0x09};
+                                             0x06, 0x07, 0x08, 0x09};
         // spi master recv buffer
         std::vector<uint8_t> spiMasterData = {0x01, 0x02, 0x03, 0x04,
-                                            0x05, 0x06, 0x07, 0x08};
+                                              0x05, 0x06, 0x07, 0x08};
         std::vector<uint8_t> spiRecvData;
 
         for (;;) {
-            spiSlave.send(spiSlaveData,0);    // 等待发送完成
+            spiSlave.send(spiSlaveData, 0);    // 等待发送完成
 
-            if(!spiMaster.recv(spiSlaveData.size())){
-        //    if(!spiMaster.send_recv(spiMasterData,spiSlaveData.size())) {
-                 Log.d("spiMaster send failed.");
+            if (!spiMaster.recv(spiSlaveData.size())) {
+                //    if(!spiMaster.send_recv(spiMasterData,spiSlaveData.size()))
+                //    {
+                Log.d("spiMaster send failed.");
 
             } else {
                 Log.d("spiMaster send success.");
@@ -148,7 +165,7 @@ class LogTask : public TaskClassS<1024> {
 LedBlinkTask ledBlinkTask;
 UsartDMATask usartDMATask;
 LogTask logTask;
-SpiTask spiTask;
+// SpiTask spiTask;
 
 int main(void) {
     nvic_priority_group_set(NVIC_PRIGROUP_PRE4_SUB0);

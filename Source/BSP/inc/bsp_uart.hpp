@@ -91,6 +91,13 @@ class Uart {
         initDmaTx();
         initDmaRx();
     }
+    // use usart_data_transmit to send dat
+    void data_send(uint8_t *data, uint16_t len) { 
+        for (uint16_t i = 0; i < len; i++) {
+            usart_data_transmit(config.usart_periph, data[i]);
+            while (RESET == usart_flag_get(config.usart_periph, USART_FLAG_TC));
+        }
+     }
 
     void send(const uint8_t *data, uint16_t len) {
         dma_channel_disable(config.dma_periph, config.dma_tx_channel);

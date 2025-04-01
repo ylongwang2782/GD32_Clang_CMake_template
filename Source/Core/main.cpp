@@ -8,7 +8,7 @@
 #include "bsp_log.hpp"
 #include "bsp_spi.hpp"
 #include "bsp_uid.hpp"
-#include "cx310.hpp"
+#include "tag_uwb_protocol.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -54,7 +54,7 @@ class LedBlinkTask : public TaskClassS<1024> {
 
             // uwb packet test
             std::vector<uint8_t> uwb_packet =
-                builder.buildUplinkPacket(user_data);
+                builder.buildTagBlinkPacket(user_data);
 
             TaskBase::delay(500);
         }

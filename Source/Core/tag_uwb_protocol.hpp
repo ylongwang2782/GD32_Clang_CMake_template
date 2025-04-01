@@ -18,17 +18,34 @@ class UWBPacketBuilder {
     }
 
     // Build uplink transmission packet from user data
-    std::vector<uint8_t> buildUplinkPacket(
+    std::vector<uint8_t> buildTag2BackendPacket(
         const std::vector<uint8_t>& user_data) {
         // Reset state for new packet
         current_packet_.clear();
         tx_counter_++;
 
         // Build each layer of the protocol stack
-        buildMsgPayload(user_data);
-        buildMsg();
-        buildSharedData();
-        buildPacket();
+        buildTag2BackendPayload(user_data);
+        buildTag2BackendMsg();
+        buildTag2BackendSharedData();
+        buildTag2BackendPacket();
+        buildFrame();
+        buildUCI();
+
+        return current_packet_;
+    }
+
+    std::vector<uint8_t> buildTagBlinkPacket(
+        const std::vector<uint8_t>& user_data) {
+        // Reset state for new packet
+        current_packet_.clear();
+        tx_counter_++;
+
+        // Build each layer of the protocol stack
+        buildTagBlinkMsgPayload();
+        buildTagBlinkMsg();
+        buildTagBlinkSharedData();
+        buildTagBlinkPacket();
         buildFrame();
         buildUCI();
 
@@ -69,7 +86,7 @@ class UWBPacketBuilder {
     }
 
     // 3.1.1. MSG Payload组包
-    void buildMsgPayload(const std::vector<uint8_t>& user_data) {
+    void buildTag2BackendPayload(const std::vector<uint8_t>& user_data) {
         struct {
             uint8_t tx_cnt;
             struct {
@@ -104,8 +121,27 @@ class UWBPacketBuilder {
         // usart0.data_send(current_packet_.data(), current_packet_.size());
     }
 
+    void buildTagBlinkMsgPayload() {
+        struct {
+            uint32_t cnt;
+            uint8_t is_moving;
+        } payload_header;
+
+        payload_header.cnt = tx_counter_;
+        payload_header.is_moving = 1;
+
+        current_packet_.clear();
+        for (int i = 3; i >= 0; --i) {
+            current_packet_.push_back(
+                static_cast<uint8_t>((payload_header.cnt >> (i * 8)) & 0xFF));
+        }
+        current_packet_.push_back(payload_header.is_moving);
+
+        // usart0.data_send(current_packet_.data(), current_packet_.size());
+    }
+
     // 3.1.2. MSG组包
-    void buildMsg() {
+    void buildTag2BackendMsg() {
         std::vector<uint8_t> msg_payload = current_packet_;
         uint16_t msg_id_size = (43 << 10) | (msg_payload.size() &
                                              0x3FF);    // MSG_ID_TAG2USER = 43
@@ -120,8 +156,23 @@ class UWBPacketBuilder {
         // usart0.data_send(current_packet_.data(), current_packet_.size());
     }
 
+    void buildTagBlinkMsg() {
+        std::vector<uint8_t> msg_payload = current_packet_;
+        // 固定MSG ID格式: 0x4801 (8 << 10 | 1)
+        uint16_t msg_id_size = 0x4801; // MSG_ID_TAG_BLINK = 8, payload_size=5
+
+        // Serialize MSG
+        current_packet_.clear();
+        // 大端模式：先存高位字节(0x48)，再存低位字节(0x01)
+        current_packet_.push_back(0x48);    // 高位字节
+        current_packet_.push_back(0x01);    // 低位字节
+        current_packet_.insert(current_packet_.end(), msg_payload.begin(),
+                               msg_payload.end());
+        // usart0.data_send(current_packet_.data(), current_packet_.size());
+    }
+
     // 3.1.3. Shared Data组包
-    void buildSharedData() {
+    void buildTag2BackendSharedData() {
         std::vector<uint8_t> msg_data = current_packet_;
 
         // Serialize Shared Data
@@ -135,8 +186,20 @@ class UWBPacketBuilder {
                                msg_data.end());
     }
 
+    void buildTagBlinkSharedData() {
+        std::vector<uint8_t> msg_data = current_packet_;
+
+        // Serialize Shared Data
+        current_packet_ = tag_uid_;
+        // Append the MSG data
+        current_packet_.insert(current_packet_.end(), msg_data.begin(),
+                               msg_data.end());
+
+        // usart0.data_send(current_packet_.data(), current_packet_.size());
+    }
+
     // 3.1.4. Packet组包
-    void buildPacket() {
+    void buildTag2BackendPacket() {
         std::vector<uint8_t> shared_data_msg = current_packet_;
 
         // The first 12 bytes are Shared Data (8 byte UID + 4 byte counter)
@@ -153,6 +216,27 @@ class UWBPacketBuilder {
         // 修改为大端模式：先存高位字节，再存低位字节
         current_packet_.push_back((size_info >> 8) & 0xFF);
         current_packet_.push_back(size_info & 0xFF);
+        current_packet_.insert(current_packet_.end(), shared_data_msg.begin(),
+                               shared_data_msg.end());
+    }
+
+    void buildTagBlinkPacket() {
+        std::vector<uint8_t> shared_data_msg = current_packet_;
+
+        // The first 8 bytes are Shared Data (8 byte UID)
+        size_t shared_size = 8;
+        // The rest is MSG data
+        size_t msg_size = shared_data_msg.size() - shared_size;
+
+        uint8_t packet_id = 0x06;    // PACKET_ID_TAG2UWB = 0x06
+        uint16_t size_info = 0xC801; // 固定值 C8 01
+
+        // Serialize Packet
+        current_packet_.clear();
+        current_packet_.push_back(packet_id);
+        // 大端模式：先存高位字节，再存低位字节
+        current_packet_.push_back((size_info >> 8) & 0xFF); // 0xC8
+        current_packet_.push_back(size_info & 0xFF);        // 0x01
         current_packet_.insert(current_packet_.end(), shared_data_msg.begin(),
                                shared_data_msg.end());
     }

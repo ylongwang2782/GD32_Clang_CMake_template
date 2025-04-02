@@ -4,6 +4,7 @@
 
 #include "TaskCPP.h"
 #include "TaskCpp.h"
+#include "bsp_adc.hpp"
 #include "bsp_led.hpp"
 #include "bsp_log.hpp"
 #include "bsp_spi.hpp"
@@ -38,6 +39,13 @@ class LedBlinkTask : public TaskClassS<1024> {
 
     void task() override {
         LED led0(GPIOC, GPIO_PIN_6);
+        // AdcSingleConversion
+        // AdcSingleConversion adc1(GPIOA, GPIO_PIN_2, ADC0);
+        // adc1.init();
+
+        // ADCSingleMultiScanDMA
+        // uint8_t adcChannelCounts = 16;
+        // ADCSingleMultiScanDMA adc0;
 
         // Initialize with tag UID (8 bytes)
         std::vector<uint8_t> tag_uid = {0x07, 0x06, 0x05, 0x04,
@@ -54,7 +62,21 @@ class LedBlinkTask : public TaskClassS<1024> {
         // uci.mode_set(STANDBY_MODE);
 
         for (;;) {
+            
+            // AdcSingleConversion
+            // adc1.read();
+            // Log.d("adc: %d", adc1.value);
+
+            // ADCSingleMultiScanDMA
+            // adc0.trigger_scan();
+            // for (size_t i = 0; i < adc0.adc_values.size(); ++i) {
+            //     Log.d("adc[%d]: %d", i, adc0.adc_values[i]);
+            // }
+
+            Log.d("LedBlinkTask");
+
             // Log.d("LedBlinkTask");
+
             led0.toggle();
 
             // // uwb packet test

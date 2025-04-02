@@ -9,6 +9,7 @@
 #include "bsp_spi.hpp"
 #include "bsp_uid.hpp"
 #include "tag_uwb_protocol.hpp"
+#include "uci.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,16 +46,23 @@ class LedBlinkTask : public TaskClassS<1024> {
 
         // User data to transmit (Hex: 01 02)
         std::vector<uint8_t> user_data = {0x01, 0x02};
+        std::vector<uint8_t> tx_data = {0x00, 0x11, 0x22, 0x33, 0x44,
+                                        0x55, 0x66, 0x77, 0x88, 0x99};
 
-        // Build the complete UWB packet
+        Uci uci(usart0);
+        uci.mode_set(RX_MODE);
+        // uci.mode_set(STANDBY_MODE);
 
         for (;;) {
             // Log.d("LedBlinkTask");
             led0.toggle();
 
-            // uwb packet test
-            std::vector<uint8_t> uwb_packet =
-                builder.buildTagBlinkPacket(user_data);
+            // // uwb packet test
+            // std::vector<uint8_t> uwb_packet =
+            //     builder.buildTagBlinkPacket(user_data);
+
+            // // uci data send test
+            // uci.data_send(tx_data);
 
             TaskBase::delay(500);
         }
@@ -66,17 +74,14 @@ class UsartDMATask : public TaskClassS<1024> {
     UsartDMATask() : TaskClassS<1024>("UsartDMATask", TaskPrio_Mid) {}
 
     void task() override {
+        std::vector<uint8_t> rx_data;
         for (;;) {
             // 等待 DMA 完成信号
             if (xSemaphoreTake(usart0_info.dmaRxDoneSema, portMAX_DELAY) ==
                 pdPASS) {
-                Log.d("Usart recv.");
-                uint8_t buffer[DMA_RX_BUFFER_SIZE];
-                uint16_t len =
-                    usart0.getReceivedData(buffer, DMA_RX_BUFFER_SIZE);
-                if (len > 0) {
-                    // dma tx the data recv
-                    usart0.send(buffer, len);
+                rx_data = usart0.getReceivedData();
+                if (rx_data.size() > 0) {
+                    usart0.send(rx_data.data(), rx_data.size());
                 }
             }
         }

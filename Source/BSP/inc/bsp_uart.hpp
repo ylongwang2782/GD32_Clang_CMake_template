@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <cstring>
 #include <string>
+#include <vector>
 
 extern "C" {
 #include "FreeRTOS.h"
@@ -19,22 +20,22 @@ extern "C" {
 #define DMA_RX_BUFFER_SIZE 1024
 
 typedef struct {
-    uint32_t baudrate;                  // 波特率
-    uint32_t gpio_port;                 // GPIO端口
-    uint32_t tx_pin;                    // 发送引脚
-    uint32_t rx_pin;                    // 接收引脚
-    uint32_t usart_periph;              // USART外设
-    rcu_periph_enum usart_clk;          // USART时钟
-    rcu_periph_enum usart_port_clk;     // USART时钟
-    uint8_t gpio_af;                    // GPIO复用功能
-    rcu_periph_enum rcu_dma_periph;     // DMA发送通道
-    uint32_t dma_periph;                // DMA发送通道
-    dma_subperipheral_enum dma_sub_per; // DMA子通道
-    dma_channel_enum dma_tx_channel;    // DMA发送通道
-    dma_channel_enum dma_rx_channel;    // DMA接收通道
-    uint8_t nvic_irq;                   // NVIC中断号
-    uint8_t nvic_irq_pre_priority;      // NVIC中断优先级
-    uint8_t nvic_irq_sub_priority;      // NVIC中断子优先级
+    uint32_t baudrate;                     // 波特率
+    uint32_t gpio_port;                    // GPIO端口
+    uint32_t tx_pin;                       // 发送引脚
+    uint32_t rx_pin;                       // 接收引脚
+    uint32_t usart_periph;                 // USART外设
+    rcu_periph_enum usart_clk;             // USART时钟
+    rcu_periph_enum usart_port_clk;        // USART时钟
+    uint8_t gpio_af;                       // GPIO复用功能
+    rcu_periph_enum rcu_dma_periph;        // DMA发送通道
+    uint32_t dma_periph;                   // DMA发送通道
+    dma_subperipheral_enum dma_sub_per;    // DMA子通道
+    dma_channel_enum dma_tx_channel;       // DMA发送通道
+    dma_channel_enum dma_rx_channel;       // DMA接收通道
+    uint8_t nvic_irq;                      // NVIC中断号
+    uint8_t nvic_irq_pre_priority;         // NVIC中断优先级
+    uint8_t nvic_irq_sub_priority;         // NVIC中断子优先级
     uint16_t rx_count;
     SemaphoreHandle_t dmaRxDoneSema;
 } UasrtInfo;
@@ -92,12 +93,12 @@ class Uart {
         initDmaRx();
     }
     // use usart_data_transmit to send dat
-    void data_send(uint8_t *data, uint16_t len) { 
+    void data_send(uint8_t *data, uint16_t len) {
         for (uint16_t i = 0; i < len; i++) {
             usart_data_transmit(config.usart_periph, data[i]);
             while (RESET == usart_flag_get(config.usart_periph, USART_FLAG_TC));
         }
-     }
+    }
 
     void send(const uint8_t *data, uint16_t len) {
         dma_channel_disable(config.dma_periph, config.dma_tx_channel);
@@ -110,12 +111,14 @@ class Uart {
         while (RESET == usart_flag_get(config.usart_periph, USART_FLAG_TC));
     }
 
-    uint16_t getReceivedData(uint8_t *buffer, uint16_t bufferSize) {
-        if (bufferSize < *config.rx_count) {
-            return 0;    // 缓冲区不足
-        }
-        memcpy(buffer, dmaRxBuffer, *config.rx_count);
-        return *config.rx_count;
+    std::vector<uint8_t> getReceivedData() {
+        std::vector<uint8_t> buffer;
+        // Resize the buffer to ensure it has enough space
+        buffer.resize(*config.rx_count);
+        memcpy(buffer.data(), dmaRxBuffer, *config.rx_count);
+        // clear
+        *config.rx_count = 0;
+        return buffer;
     }
 
    private:

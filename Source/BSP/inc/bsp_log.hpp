@@ -17,18 +17,14 @@ extern "C" {
 
 #define USART_LOG      USART1
 #define LOG_QUEUE_SIZE 128
-
 // 定义日志消息的最大长度
 #define LOG_MESSAGE_MAX_LENGTH 128
-
 // 定义日志队列的长度
 #define LOG_QUEUE_LENGTH 10
-
 // 日志消息结构体
 struct LogMessage {
     std::array<char, LOG_MESSAGE_MAX_LENGTH> message;
 };
-
 // 日志级别枚举
 enum class Level { VERBOSE, DEBUGL, INFO, WARN, ERROR, RAW };
 
@@ -121,5 +117,7 @@ class Logger {
         }
     }
 };
+
+extern Logger Log;
 
 #endif

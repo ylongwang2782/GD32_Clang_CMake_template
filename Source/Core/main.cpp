@@ -8,6 +8,8 @@
 #include "bsp_log.hpp"
 #include "bsp_spi.hpp"
 #include "bsp_uid.hpp"
+#include "tag_uwb_protocol.hpp"
+#include "uci.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,7 +30,7 @@ Uart usart1(usart1Conf);
 Uart usart2(usart2Conf);
 Uart uart3(uart3Conf);
 
-Logger Log(usart1);
+Logger Log(usart0);
 
 class LedBlinkTask : public TaskClassS<1024> {
    public:
@@ -37,9 +39,31 @@ class LedBlinkTask : public TaskClassS<1024> {
     void task() override {
         LED led0(GPIOC, GPIO_PIN_6);
 
+        // Initialize with tag UID (8 bytes)
+        std::vector<uint8_t> tag_uid = {0x07, 0x06, 0x05, 0x04,
+                                        0x03, 0x02, 0x01, 0x00};
+        UWBPacketBuilder builder(tag_uid);
+
+        // User data to transmit (Hex: 01 02)
+        std::vector<uint8_t> user_data = {0x01, 0x02};
+        std::vector<uint8_t> tx_data = {0x00, 0x11, 0x22, 0x33, 0x44,
+                                        0x55, 0x66, 0x77, 0x88, 0x99};
+
+        Uci uci(usart0);
+        uci.mode_set(RX_MODE);
+        // uci.mode_set(STANDBY_MODE);
+
         for (;;) {
-            Log.d("LedBlinkTask");
+            // Log.d("LedBlinkTask");
             led0.toggle();
+
+            // // uwb packet test
+            // std::vector<uint8_t> uwb_packet =
+            //     builder.buildTagBlinkPacket(user_data);
+
+            // // uci data send test
+            // uci.data_send(tx_data);
+
             TaskBase::delay(500);
         }
     }
@@ -50,17 +74,14 @@ class UsartDMATask : public TaskClassS<1024> {
     UsartDMATask() : TaskClassS<1024>("UsartDMATask", TaskPrio_Mid) {}
 
     void task() override {
+        std::vector<uint8_t> rx_data;
         for (;;) {
             // 等待 DMA 完成信号
             if (xSemaphoreTake(usart0_info.dmaRxDoneSema, portMAX_DELAY) ==
                 pdPASS) {
-                Log.d("Usart recv.");
-                uint8_t buffer[DMA_RX_BUFFER_SIZE];
-                uint16_t len =
-                    usart0.getReceivedData(buffer, DMA_RX_BUFFER_SIZE);
-                if (len > 0) {
-                    // dma tx the data recv
-                    usart0.send(buffer, len);
+                rx_data = usart0.getReceivedData();
+                if (rx_data.size() > 0) {
+                    usart0.send(rx_data.data(), rx_data.size());
                 }
             }
         }
@@ -95,18 +116,19 @@ class SpiTask : public TaskClassS<1024> {
         // spiSlave.enable();
 
         std::vector<uint8_t> spiSlaveData = {0x01, 0x02, 0x03, 0x04, 0x05,
-                              0x06, 0x07, 0x08, 0x09};
+                                             0x06, 0x07, 0x08, 0x09};
         // spi master recv buffer
         std::vector<uint8_t> spiMasterData = {0x01, 0x02, 0x03, 0x04,
-                                            0x05, 0x06, 0x07, 0x08};
+                                              0x05, 0x06, 0x07, 0x08};
         std::vector<uint8_t> spiRecvData;
 
         for (;;) {
-            spiSlave.send(spiSlaveData,0);    // 等待发送完成
+            spiSlave.send(spiSlaveData, 0);    // 等待发送完成
 
-            if(!spiMaster.recv(spiSlaveData.size())){
-        //    if(!spiMaster.send_recv(spiMasterData,spiSlaveData.size())) {
-                 Log.d("spiMaster send failed.");
+            if (!spiMaster.recv(spiSlaveData.size())) {
+                //    if(!spiMaster.send_recv(spiMasterData,spiSlaveData.size()))
+                //    {
+                Log.d("spiMaster send failed.");
 
             } else {
                 Log.d("spiMaster send success.");
@@ -148,7 +170,7 @@ class LogTask : public TaskClassS<1024> {
 LedBlinkTask ledBlinkTask;
 UsartDMATask usartDMATask;
 LogTask logTask;
-SpiTask spiTask;
+// SpiTask spiTask;
 
 int main(void) {
     nvic_priority_group_set(NVIC_PRIGROUP_PRE4_SUB0);

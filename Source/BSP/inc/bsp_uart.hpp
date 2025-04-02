@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <cstring>
 #include <string>
+#include <vector>
 
 extern "C" {
 #include "FreeRTOS.h"
@@ -93,6 +94,13 @@ class Uart {
         initDmaTx();
         initDmaRx();
     }
+    // use usart_data_transmit to send dat
+    void data_send(uint8_t *data, uint16_t len) {
+        for (uint16_t i = 0; i < len; i++) {
+            usart_data_transmit(config.usart_periph, data[i]);
+            while (RESET == usart_flag_get(config.usart_periph, USART_FLAG_TC));
+        }
+    }
 
     void send(const uint8_t *data, uint16_t len) {
         dma_channel_disable(config.dma_periph, config.dma_tx_channel);
@@ -105,12 +113,14 @@ class Uart {
         while (RESET == usart_flag_get(config.usart_periph, USART_FLAG_TC));
     }
 
-    uint16_t getReceivedData(uint8_t *buffer, uint16_t bufferSize) {
-        if (bufferSize < *config.rx_count) {
-            return 0;    // 缓冲区不足
-        }
-        memcpy(buffer, dmaRxBuffer, *config.rx_count);
-        return *config.rx_count;
+    std::vector<uint8_t> getReceivedData() {
+        std::vector<uint8_t> buffer;
+        // Resize the buffer to ensure it has enough space
+        buffer.resize(*config.rx_count);
+        memcpy(buffer.data(), dmaRxBuffer, *config.rx_count);
+        // clear
+        *config.rx_count = 0;
+        return buffer;
     }
 
    private:

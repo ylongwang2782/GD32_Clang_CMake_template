@@ -35,7 +35,7 @@ class UWBPacketBuilder {
         return current_packet_;
     }
 
-    std::vector<uint8_t> sendTagBlinkPacket() {
+    std::vector<uint8_t> buildTagBlinkFrame() {
         // Reset state for new packet
         current_packet_.clear();
         tx_counter_++;
@@ -46,7 +46,6 @@ class UWBPacketBuilder {
         buildTagBlinkSharedData();
         buildTagBlinkPacket();
         buildFrame();
-        buildUCI();
 
         return current_packet_;
     }
@@ -284,6 +283,6 @@ class UWBPacketBuilder {
         current_packet_.push_back(size & 0xFF);
         current_packet_.insert(current_packet_.end(), frame_data.begin(),
                                frame_data.end());
-        usart0.data_send(current_packet_.data(), current_packet_.size());
+        // usart0.data_send(current_packet_.data(), current_packet_.size());
     }
 };

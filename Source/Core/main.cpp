@@ -26,10 +26,12 @@ UartConfig usart0Conf(usart0_info);
 // UartConfig usart1Conf(usart1_info);
 // UartConfig usart2Conf(usart2_info);
 UartConfig uart3Conf(uart3_info);
+UartConfig uart4Conf(uart4_info);
 Uart usart0(usart0Conf);
 // Uart usart1(usart1Conf);
 // Uart usart2(usart2Conf);
 Uart uart3(uart3Conf);
+Uart uart4(uart4Conf);
 
 Logger Log(uart3);
 
@@ -43,20 +45,16 @@ class UwbTask : public TaskClassS<1024> {
                                         0x03, 0x02, 0x01, 0x00};
         UWBPacketBuilder builder(tag_uid);
 
-        // User data to transmit (Hex: 01 02)
-        std::vector<uint8_t> tx_data = {0x00, 0x11, 0x22, 0x33, 0x44,
-                                        0x55, 0x66, 0x77, 0x88, 0x99};
-
         Uci uci(usart0);
         // uci.mode_set(RX_MODE);
         // uci.mode_set(STANDBY_MODE);
 
+        std::vector<uint8_t> blinkFrame;
+
         for (;;) {
             // uwb packet test
-            builder.sendTagBlinkPacket();
-
-            // // uci data send test
-            // uci.data_send(tx_data);
+            blinkFrame = builder.buildTagBlinkFrame();
+            uci.data_send(blinkFrame);
             TaskBase::delay(500);
         }
     }

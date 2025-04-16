@@ -9,6 +9,7 @@
 #include "bsp_log.hpp"
 #include "bsp_spi.hpp"
 #include "bsp_uid.hpp"
+#include "cx310.hpp"
 #include "tag_uwb_protocol.hpp"
 #include "uci.hpp"
 
@@ -26,12 +27,49 @@ UartConfig usart0Conf(usart0_info);
 UartConfig usart1Conf(usart1_info);
 UartConfig usart2Conf(usart2_info);
 UartConfig uart3Conf(uart3_info);
+// UartConfig uart4Conf(uart4_info);
 Uart usart0(usart0Conf);
 Uart usart1(usart1Conf);
 Uart usart2(usart2Conf);
 Uart uart3(uart3Conf);
+// Uart uart4(uart4Conf);
 
-Logger Log(usart0);
+Logger Log(uart3);
+
+class UwbTask : public TaskClassS<1024> {
+   public:
+    UwbTask() : TaskClassS<1024>("UwbTask", TaskPrio_Mid) {}
+
+    void task() override {
+        // Initialize with tag UID (8 bytes)
+        CX310 cx310(usart2);
+        CX310::Config config = {.preamble_idx = 9,
+                                .sfd_id = 5,
+                                .psr_sync_len = 8,
+                                .mac_datarate = 2,
+                                .channel = 5,
+                                .phr_datarate = 0,
+                                .mac_mode = 0};
+        cx310.init(config);
+
+        std::vector<uint8_t> tag_uid = {0x07, 0x06, 0x05, 0x04,
+                                        0x03, 0x02, 0x01, 0x00};
+        UWBPacketBuilder builder(tag_uid);
+
+        Uci uci(usart0);
+        // uci.mode_set(RX_MODE);
+        // uci.mode_set(STANDBY_MODE);
+
+        std::vector<uint8_t> blinkFrame;
+
+        for (;;) {
+            // uwb packet test
+            blinkFrame = builder.buildTagBlinkFrame();
+            uci.data_send(blinkFrame);
+            TaskBase::delay(500);
+        }
+    }
+};
 
 class LedBlinkTask : public TaskClassS<1024> {
    public:
@@ -39,53 +77,10 @@ class LedBlinkTask : public TaskClassS<1024> {
 
     void task() override {
         LED led0(GPIOC, GPIO_PIN_6);
-        // AdcSingleConversion
-        // AdcSingleConversion adc1(GPIOA, GPIO_PIN_2, ADC0);
-        // adc1.init();
-
-        // ADCSingleMultiScanDMA
-        // uint8_t adcChannelCounts = 16;
-        // ADCSingleMultiScanDMA adc0;
-
-        // Initialize with tag UID (8 bytes)
-        std::vector<uint8_t> tag_uid = {0x07, 0x06, 0x05, 0x04,
-                                        0x03, 0x02, 0x01, 0x00};
-        UWBPacketBuilder builder(tag_uid);
-
-        // User data to transmit (Hex: 01 02)
-        std::vector<uint8_t> user_data = {0x01, 0x02};
-        std::vector<uint8_t> tx_data = {0x00, 0x11, 0x22, 0x33, 0x44,
-                                        0x55, 0x66, 0x77, 0x88, 0x99};
-
-        Uci uci(usart0);
-        uci.mode_set(RX_MODE);
-        // uci.mode_set(STANDBY_MODE);
 
         for (;;) {
-            
-            // AdcSingleConversion
-            // adc1.read();
-            // Log.d("adc: %d", adc1.value);
-
-            // ADCSingleMultiScanDMA
-            // adc0.trigger_scan();
-            // for (size_t i = 0; i < adc0.adc_values.size(); ++i) {
-            //     Log.d("adc[%d]: %d", i, adc0.adc_values[i]);
-            // }
-
-            Log.d("LedBlinkTask");
-
             // Log.d("LedBlinkTask");
-
             led0.toggle();
-
-            // // uwb packet test
-            // std::vector<uint8_t> uwb_packet =
-            //     builder.buildTagBlinkPacket(user_data);
-
-            // // uci data send test
-            // uci.data_send(tx_data);
-
             TaskBase::delay(500);
         }
     }
@@ -99,13 +94,13 @@ class UsartDMATask : public TaskClassS<1024> {
         std::vector<uint8_t> rx_data;
         for (;;) {
             // 等待 DMA 完成信号
-            if (xSemaphoreTake(usart0_info.dmaRxDoneSema, portMAX_DELAY) ==
-                pdPASS) {
-                rx_data = usart0.getReceivedData();
-                if (rx_data.size() > 0) {
-                    usart0.send(rx_data.data(), rx_data.size());
-                }
-            }
+            // if (xSemaphoreTake(usart0_info.dmaRxDoneSema, portMAX_DELAY) ==
+            //     pdPASS) {
+            //     rx_data = usart0.getReceivedData();
+            //     if (rx_data.size() > 0) {
+            //         usart0.send(rx_data.data(), rx_data.size());
+            //     }
+            // }
         }
     }
 };
@@ -189,6 +184,7 @@ class LogTask : public TaskClassS<1024> {
     }
 };
 
+UwbTask uwbTask;
 LedBlinkTask ledBlinkTask;
 UsartDMATask usartDMATask;
 LogTask logTask;

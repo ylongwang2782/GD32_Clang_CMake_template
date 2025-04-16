@@ -21,12 +21,14 @@ extern "C" {
 
 typedef struct {
     uint32_t baudrate;                     // 波特率
-    uint32_t gpio_port;                    // GPIO端口
+    uint32_t tx_port;                    // GPIO端口
+    uint32_t rx_port;                    // GPIO端口
     uint32_t tx_pin;                       // 发送引脚
     uint32_t rx_pin;                       // 接收引脚
     uint32_t usart_periph;                 // USART外设
     rcu_periph_enum usart_clk;             // USART时钟
-    rcu_periph_enum usart_port_clk;        // USART时钟
+    rcu_periph_enum tx_port_clk;        // USART时钟
+    rcu_periph_enum rx_port_clk;        // USART时钟
     uint8_t gpio_af;                       // GPIO复用功能
     rcu_periph_enum rcu_dma_periph;        // DMA发送通道
     uint32_t dma_periph;                   // DMA发送通道
@@ -43,12 +45,14 @@ typedef struct {
 class UartConfig {
    public:
     uint32_t baudrate;                     // 波特率
-    uint32_t gpio_port;                    // GPIO端口
+    uint32_t tx_port;                    // GPIO端口
+    uint32_t rx_port;                    // GPIO端口
     uint32_t tx_pin;                       // 发送引脚
     uint32_t rx_pin;                       // 接收引脚
     uint32_t usart_periph;                 // USART外设
     rcu_periph_enum usart_clk;             // USART时钟
-    rcu_periph_enum usart_port_clk;        // USART端口时钟
+    rcu_periph_enum tx_port_clk;        // USART端口时钟
+    rcu_periph_enum rx_port_clk;        // USART端口时钟
     uint8_t gpio_af;                       // GPIO复用功能
     rcu_periph_enum rcu_dma_periph;        // DMA时钟
     uint32_t dma_periph;                   // DMA外设
@@ -62,12 +66,14 @@ class UartConfig {
 
     UartConfig(UasrtInfo &info)
         : baudrate(info.baudrate),
-          gpio_port(info.gpio_port),
+          tx_port(info.tx_port),
+          rx_port(info.rx_port),
           tx_pin(info.tx_pin),
           rx_pin(info.rx_pin),
           usart_periph(info.usart_periph),
           usart_clk(info.usart_clk),
-          usart_port_clk(info.usart_port_clk),
+          tx_port_clk(info.tx_port_clk),
+          rx_port_clk(info.rx_port_clk),
           gpio_af(info.gpio_af),
           rcu_dma_periph(info.rcu_dma_periph),
           dma_periph(info.dma_periph),
@@ -84,6 +90,7 @@ extern UasrtInfo usart0_info;
 extern UasrtInfo usart1_info;
 extern UasrtInfo usart2_info;
 extern UasrtInfo uart3_info;
+extern UasrtInfo uart4_info;
 extern UasrtInfo uart6_info;
 
 class Uart {
@@ -128,16 +135,17 @@ class Uart {
     uint8_t dmaRxBuffer[DMA_RX_BUFFER_SIZE];
 
     void initGpio() {
-        rcu_periph_clock_enable(config.usart_port_clk);
-        gpio_af_set(config.gpio_port, config.gpio_af, config.tx_pin);
-        gpio_af_set(config.gpio_port, config.gpio_af, config.rx_pin);
-        gpio_mode_set(config.gpio_port, GPIO_MODE_AF, GPIO_PUPD_PULLUP,
+        rcu_periph_clock_enable(config.tx_port_clk);
+        rcu_periph_clock_enable(config.rx_port_clk);
+        gpio_af_set(config.tx_port, config.gpio_af, config.tx_pin);
+        gpio_af_set(config.rx_port, config.gpio_af, config.rx_pin);
+        gpio_mode_set(config.tx_port, GPIO_MODE_AF, GPIO_PUPD_PULLUP,
                       config.tx_pin);
-        gpio_output_options_set(config.gpio_port, GPIO_OTYPE_PP,
+        gpio_output_options_set(config.tx_port, GPIO_OTYPE_PP,
                                 GPIO_OSPEED_50MHZ, config.tx_pin);
-        gpio_mode_set(config.gpio_port, GPIO_MODE_AF, GPIO_PUPD_PULLUP,
+        gpio_mode_set(config.rx_port, GPIO_MODE_AF, GPIO_PUPD_PULLUP,
                       config.rx_pin);
-        gpio_output_options_set(config.gpio_port, GPIO_OTYPE_PP,
+        gpio_output_options_set(config.rx_port, GPIO_OTYPE_PP,
                                 GPIO_OSPEED_50MHZ, config.rx_pin);
     }
 

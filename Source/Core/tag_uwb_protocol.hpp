@@ -35,8 +35,7 @@ class UWBPacketBuilder {
         return current_packet_;
     }
 
-    std::vector<uint8_t> buildTagBlinkPacket(
-        const std::vector<uint8_t>& user_data) {
+    std::vector<uint8_t> buildTagBlinkFrame() {
         // Reset state for new packet
         current_packet_.clear();
         tx_counter_++;
@@ -47,7 +46,6 @@ class UWBPacketBuilder {
         buildTagBlinkSharedData();
         buildTagBlinkPacket();
         buildFrame();
-        buildUCI();
 
         return current_packet_;
     }
@@ -159,7 +157,8 @@ class UWBPacketBuilder {
     void buildTagBlinkMsg() {
         std::vector<uint8_t> msg_payload = current_packet_;
         // 固定MSG ID格式: 0x4801 (8 << 10 | 1)
-        uint16_t msg_id_size = 0x4801; // MSG_ID_TAG_BLINK = 8, payload_size=5
+        uint16_t msg_id_size =
+            0x4801;    // MSG_ID_TAG_BLINK = 8, payload_size=5
 
         // Serialize MSG
         current_packet_.clear();
@@ -228,15 +227,15 @@ class UWBPacketBuilder {
         // The rest is MSG data
         size_t msg_size = shared_data_msg.size() - shared_size;
 
-        uint8_t packet_id = 0x06;    // PACKET_ID_TAG2UWB = 0x06
-        uint16_t size_info = 0xC801; // 固定值 C8 01
+        uint8_t packet_id = 0x06;       // PACKET_ID_TAG2UWB = 0x06
+        uint16_t size_info = 0xC801;    // 固定值 C8 01
 
         // Serialize Packet
         current_packet_.clear();
         current_packet_.push_back(packet_id);
         // 大端模式：先存高位字节，再存低位字节
-        current_packet_.push_back((size_info >> 8) & 0xFF); // 0xC8
-        current_packet_.push_back(size_info & 0xFF);        // 0x01
+        current_packet_.push_back((size_info >> 8) & 0xFF);    // 0xC8
+        current_packet_.push_back(size_info & 0xFF);           // 0x01
         current_packet_.insert(current_packet_.end(), shared_data_msg.begin(),
                                shared_data_msg.end());
     }
@@ -284,6 +283,6 @@ class UWBPacketBuilder {
         current_packet_.push_back(size & 0xFF);
         current_packet_.insert(current_packet_.end(), frame_data.begin(),
                                frame_data.end());
-        usart0.data_send(current_packet_.data(), current_packet_.size());
+        // usart0.data_send(current_packet_.data(), current_packet_.size());
     }
 };

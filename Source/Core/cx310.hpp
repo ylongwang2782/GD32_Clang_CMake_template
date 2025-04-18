@@ -5,6 +5,7 @@
 
 #include "TaskCPP.h"
 #include "bsp_uart.hpp"
+#include "bsp_gpio.hpp"
 
 class CX310 {
    public:
@@ -23,6 +24,9 @@ class CX310 {
 
     void init(const Config& config) {
         uint8_t timedelay = 50;
+
+        GPIO cx310_enable_pin(GPIO::Port::F,GPIO::Pin::PIN_12,GPIO::Mode::OUTPUT);
+        cx310_enable_pin.bit_set();
         set_preamble_idx(config.preamble_idx);
         TaskBase::delay(timedelay);
         set_sfd_id(config.sfd_id);

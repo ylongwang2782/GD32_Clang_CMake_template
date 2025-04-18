@@ -35,6 +35,7 @@ Uart usart0(usart0Conf);
 Uart uart4(uart4Conf);
 
 Logger Log(uart4);
+LED led0(GPIOC, GPIO_PIN_13);
 
 class UwbTask : public TaskClassS<1024> {
    public:
@@ -54,20 +55,11 @@ class UwbTask : public TaskClassS<1024> {
 
         UIDReader &uid = UIDReader::getInstance();
         UWBPacketBuilder builder(uid.value);
-
         Uci uci(usart0);
-        // uci.mode_set(RX_MODE);
-        // uci.mode_set(STANDBY_MODE);
-
         std::vector<uint8_t> blinkFrame;
-
-        LED led0(GPIOC, GPIO_PIN_13);
-
         for (;;) {
-            // uwb packet test
             blinkFrame = builder.buildTagBlinkFrame();
             uci.data_send(blinkFrame);
-            led0.toggle();
             TaskBase::delay(500);
         }
     }
@@ -80,6 +72,7 @@ class LedBlinkTask : public TaskClassS<1024> {
     void task() override {
         for (;;) {
             // Log.d("LedBlinkTask");
+            led0.toggle();
             TaskBase::delay(500);
         }
     }

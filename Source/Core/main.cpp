@@ -51,6 +51,7 @@ class UwbTask : public TaskClassS<1024> {
                                 .channel = 5,
                                 .phr_datarate = 0,
                                 .mac_mode = 0};
+        TaskBase::delay(1000);
         cx310.init(config);
 
         UIDReader &uid = UIDReader::getInstance();
@@ -58,6 +59,7 @@ class UwbTask : public TaskClassS<1024> {
         Uci uci(usart0);
         std::vector<uint8_t> blinkFrame;
         for (;;) {
+            led0.toggle();
             blinkFrame = builder.buildTagBlinkFrame();
             uci.data_send(blinkFrame);
             TaskBase::delay(500);
@@ -72,7 +74,6 @@ class LedBlinkTask : public TaskClassS<1024> {
     void task() override {
         for (;;) {
             // Log.d("LedBlinkTask");
-            led0.toggle();
             TaskBase::delay(500);
         }
     }

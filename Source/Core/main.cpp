@@ -2,23 +2,13 @@
 #include <cstdint>
 #include <cstdio>
 
+#include "FreeRTOS.h"
 #include "TaskCPP.h"
 #include "TaskCpp.h"
-#include "bsp_adc.hpp"
 #include "bsp_led.hpp"
 #include "bsp_log.hpp"
-#include "bsp_spi.hpp"
 #include "bsp_uid.hpp"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-#include "FreeRTOS.h"
 #include "task.h"
-
-#ifdef __cplusplus
-}
-#endif
 
 UartConfig uart7Conf(uart7_info);
 Uart uartLog(uart7Conf);

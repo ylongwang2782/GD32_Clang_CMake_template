@@ -1,0 +1,34 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 19,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "Debug",
+            "displayName": "Debug",
+            "toolchainFile": "${sourceDir}/CMake/arm-none-eabi-gcc.cmake",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "true",
+                "CMAKE_BUILD_TYPE": "Debug",
+                "BUILD_VARIANT": "DEBUG"
+            }
+        },
+        {
+            "name": "Release",
+            "displayName": "Release",
+            "toolchainFile": "${sourceDir}/CMake/arm-none-eabi-gcc.cmake",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "true",
+                "CMAKE_BUILD_TYPE": "Release",
+                "BUILD_VARIANT": "RELEASE"
+            }
+        }
+    ]
+}

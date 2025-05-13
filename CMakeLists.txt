@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.19)
 
 # Setup compiler settings
 set(CMAKE_C_STANDARD 11)
@@ -17,8 +17,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
 enable_language(ASM C CXX)
 
-# 设置项目名称和版本号
-project(GD32_Clang_Cmake_template VERSION 0.1.0)
+if(BUILD_VARIANT STREQUAL "DEBUG")
+project(GD32_CPP_OS_CMAKE VERSION 1.0)
+elseif(BUILD_VARIANT STREQUAL "RELEASE")
+project(GD32_CPP_OS_CMAKE VERSION 1.0)
+else()
+  message(FATAL_ERROR "Unknown BUILD_VARIANT value: ${BUILD_VARIANT}")
+endif()
 
 add_compile_options(
   -Wno-unused-parameter # 忽略未使用的参数警告
@@ -27,6 +32,6 @@ add_compile_options(
 
 add_link_options(-Wl,--unresolved-symbols=ignore-in-object-files)
 
-add_definitions(-DGD32F470 -DGCC -D__cpluscplus)
+add_definitions(-DGD32F470 -DGCC)
 
 add_subdirectory(Source)

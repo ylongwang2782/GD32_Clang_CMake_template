@@ -54,6 +54,6 @@ set(CMAKE_CXX_LINK_FLAGS
 
 # 添加编译指令
 add_compile_options(
-  "$<$<CONFIG:Debug>:-Og;-DDEBUG;-g;-funwind-tables>"
+  "$<$<CONFIG:Debug>:-O0;-DDEBUG;-g;-funwind-tables>"
   "$<$<CONFIG:Release>:-O3;-DNDEBUG>" "$<$<CONFIG:MinSizeRel>:-Os;-DNDEBUG>"
   "$<$<CONFIG:RelWithDebInfo>:-Os;-g;-DDEBUG>")

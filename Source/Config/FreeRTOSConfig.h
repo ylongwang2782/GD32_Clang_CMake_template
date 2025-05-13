@@ -30,7 +30,7 @@
 
 #if defined(__ICCARM__) || defined(__CC_ARM) || defined(__GNUC__)
 #include <stdint.h>
-extern uint32_t SystemCoreClock;
+//  extern uint32_t SystemCoreClock;
 #endif
 #include <stdio.h>
 #define vPortSVCHandler     SVC_Handler
@@ -48,7 +48,7 @@ extern void vAssertCalled(const char *file, int line);
  * settings.  Your application will certainly need a different value so set this
  * correctly. This is very often, but not always, equal to the main system clock
  * frequency. */
-#define configCPU_CLOCK_HZ (SystemCoreClock)
+#define configCPU_CLOCK_HZ (uint32_t)(240000000)
 
 /* configSYSTICK_CLOCK_HZ is an optional parameter for ARM Cortex-M ports only.
  *
@@ -92,7 +92,7 @@ extern void vAssertCalled(const char *file, int line);
  * 参考文档：
  * https://freertos.org/single-core-amp-smp-rtos-scheduling.html
  */
-#define configUSE_TIME_SLICING 0
+#define configUSE_TIME_SLICING 1
 
 /* Set configUSE_PORT_OPTIMISED_TASK_SELECTION to 1 to select the next task to
  * run using an algorithm optimised to the instruction set of the target
@@ -118,7 +118,7 @@ extern void vAssertCalled(const char *file, int line);
  * (in words, not in bytes!).  The kernel does not use this constant for any
  * other purpose.  Demo applications use the constant to make the demos somewhat
  * portable across hardware architectures. */
-#define configMINIMAL_STACK_SIZE 128
+#define configMINIMAL_STACK_SIZE ((unsigned short)130)
 
 /* configMAX_TASK_NAME_LEN sets the maximum length (in characters) of a task's
  * human readable name.  Includes the NULL terminator. */
@@ -161,7 +161,7 @@ extern void vAssertCalled(const char *file, int line);
 /* Set configENABLE_BACKWARD_COMPATIBILITY to 1 to map function names and
  * datatypes from old version of FreeRTOS to their latest equivalent.  Defaults
  * to 1 if left undefined. */
-#define configENABLE_BACKWARD_COMPATIBILITY 0
+#define configENABLE_BACKWARD_COMPATIBILITY 1
 
 /* Each task has its own array of pointers that can be used as thread local
  * storage.  configNUM_THREAD_LOCAL_STORAGE_POINTERS set the number of indexes
@@ -290,7 +290,7 @@ extern void vAssertCalled(const char *file, int line);
  * or heap_4.c are included in the build.  This value is defaulted to 4096 bytes
  * but it must be tailored to each application.  Note the heap will appear in
  * the .bss section.  See https://www.freertos.org/a00111.html. */
-#define configTOTAL_HEAP_SIZE (1024 * 30)
+#define configTOTAL_HEAP_SIZE ((size_t)(50 * 1024))
 
 /* Set configAPPLICATION_ALLOCATED_HEAP to 1 to have the application allocate
  * the array used as the FreeRTOS heap.  Set to 0 to have the linker allocate
@@ -329,7 +329,7 @@ function. */
 routine that makes calls to interrupt safe FreeRTOS API functions.  DO NOT CALL
 INTERRUPT SAFE FREERTOS API FUNCTIONS FROM ANY INTERRUPT THAT HAS A HIGHER
 PRIORITY THAN THIS! (higher priorities are lower numeric values. */
-#define configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY 5
+#define configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY 1
 
 /* Interrupt priorities used by the kernel port layer itself.  These are generic
 to all Cortex-M ports, and do not rely on any particular library functions. */
@@ -406,7 +406,7 @@ See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
  * functions introduce a dependency on string formatting functions that would
  * otherwise not exist - hence they are kept separate.  Defaults to 0 if left
  * undefined. */
-#define configUSE_STATS_FORMATTING_FUNCTIONS 0
+#define configUSE_STATS_FORMATTING_FUNCTIONS 1
 
 /******************************************************************************/
 /* Co-routine related definitions. ********************************************/
@@ -435,7 +435,8 @@ See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
  * number of the failing assert (for example, "vAssertCalled( __FILE__, __LINE__
  * )" or it can simple disable interrupts and sit in a loop to halt all
  * execution on the failing line for viewing in a debugger. */
-#define configASSERT(x) if ((x) == 0) vAssertCalled(__FILE__, __LINE__)
+#define configASSERT(x) \
+    if ((x) == 0) vAssertCalled(__FILE__, __LINE__)
 /******************************************************************************/
 /* FreeRTOS MPU specific definitions. *****************************************/
 /******************************************************************************/
@@ -593,14 +594,14 @@ See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
  * to enable the TrustZone support in FreeRTOS ARMv8-M ports which allows the
  * non-secure FreeRTOS tasks to call the (non-secure callable) functions
  * exported from secure side. */
-#define configENABLE_TRUSTZONE 1
+#define configENABLE_TRUSTZONE 0
 
 /* If the application writer does not want to use TrustZone, but the hardware
  * does not support disabling TrustZone then the entire application (including
  * the FreeRTOS scheduler) can run on the secure side without ever branching to
  * the non-secure side. To do that, in addition to setting
  * configENABLE_TRUSTZONE to 0, also set configRUN_FREERTOS_SECURE_ONLY to 1. */
-#define configRUN_FREERTOS_SECURE_ONLY 1
+#define configRUN_FREERTOS_SECURE_ONLY 0
 
 /* Set configENABLE_MPU to 1 to enable the Memory Protection Unit (MPU), or 0
  * to leave the Memory Protection Unit disabled. */
@@ -653,7 +654,7 @@ See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
 #define INCLUDE_xEventGroupSetBitFromISR    1
 #define INCLUDE_xTimerPendFunctionCall      0
 #define INCLUDE_xTaskAbortDelay             0
-#define INCLUDE_xTaskGetHandle              0
+#define INCLUDE_xTaskGetHandle              1
 #define INCLUDE_xTaskResumeFromISR          1
 
 /**

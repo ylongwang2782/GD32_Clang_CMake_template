@@ -15,7 +15,7 @@ extern "C" {
 #include "task.h"
 }
 #define LOG_TASK_DEPTH_SIZE 512
-#define LOG_TASK_PRIO       TaskPrio_Low
+#define LOG_TASK_PRIO       TaskPrio_Highest
 
 // 定义日志消息的最大长度
 #define LOG_QUEUE_SIZE 256

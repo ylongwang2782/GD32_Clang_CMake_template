@@ -24,27 +24,6 @@ UartConfig uart7Conf(uart7_info);
 Uart uartLog(uart7Conf);
 Logger Log(uartLog);
 
-class UsartDMATask : public TaskClassS<1024> {
-   public:
-    UsartDMATask() : TaskClassS<1024>("UsartDMATask", TaskPrio_Mid) {}
-
-    void task() override {
-        std::vector<uint8_t> rx_data;
-        for (;;) {
-            // 等待 DMA 完成信号
-            if (xSemaphoreTake(usart0_info.dmaRxDoneSema, portMAX_DELAY) ==
-                pdPASS) {
-                // rx_data = usart0.getReceivedData();
-                // if (rx_data.size() > 0) {
-                //     usart0.send(rx_data.data(), rx_data.size());
-                // }
-            }
-        }
-    }
-};
-
-// UsartDMATask usartDMATask;
-
 static void InitTask(void* pvParameters) {
     uint32_t myUid = UIDReader::get();
     Log.d("BOOT", "device ID: %02X", myUid);

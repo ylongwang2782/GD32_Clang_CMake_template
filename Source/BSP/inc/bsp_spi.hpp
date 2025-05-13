@@ -486,19 +486,19 @@ class SpiTask : public TaskClassS<SPI_TASK_STACK_DEPTH> {
             if (!spiMaster.recv(spiSlaveData.size())) {
                 //    if(!spiMaster.send_recv(spiMasterData,spiSlaveData.size()))
                 //    {
-                Log.d("spiMaster send failed.");
+                Log.d("SPI", "spiMaster send failed.");
 
             } else {
-                Log.d("spiMaster send success.");
+                Log.d("SPI", "spiMaster send success.");
                 for (auto data : spiMaster.rx_buffer) {
-                    Log.d("spiMaster recv data: %d", data);
+                    Log.d("SPI", "spiMaster recv data: %d", data);
                 }
             }
 
             while (!spiSlave.rx_queue.empty()) {
                 uint8_t data;
                 spiSlave.rx_queue.pop(data);
-                Log.d("spiSlave recv data: %d", data);
+                Log.d("SPI", "spiSlave recv data: %d", data);
             }
             // spiRecvData = spiMaster.rx_buffer;
 

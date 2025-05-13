@@ -44,9 +44,11 @@ static void InitTask(void* pvParameters) {
 
     /* configure ethernet (GPIOs, clocks, MAC, DMA) */
     enet_system_setup();
+    Log.d("BOOT", "ethernet initialized");
 
     /* initilaize the LwIP stack */
     lwip_stack_init();
+    Log.d("BOOT", "lwip stack initialized");
 
     while (1) {
         Log.d("SYS", "heap minimum: %d", xPortGetMinimumEverFreeHeapSize());

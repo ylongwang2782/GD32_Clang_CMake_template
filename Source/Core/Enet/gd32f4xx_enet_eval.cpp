@@ -33,16 +33,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include "gd32f4xx_enet_eval.h"
 
+#include "bsp_log.hpp"
 #include "gd32f4xx_enet.h"
 #include "main.h"
-#include "bsp_log.hpp"
+
 extern Logger Log;
 
-static __IO uint32_t enet_init_status = 0;
+__IO uint32_t enet_init_status = 0;
 
-static void enet_gpio_config(void);
-static void enet_mac_dma_config(void);
-static void nvic_configuration(void);
+void enet_gpio_config(void);
+void enet_mac_dma_config(void);
+void nvic_configuration(void);
 
 /*!
     \brief      setup ethernet system(GPIOs, clocks, MAC, DMA, systick)
@@ -77,7 +78,7 @@ void enet_system_setup(void) {
     \param[out] none
     \retval     none
 */
-static void enet_mac_dma_config(void) {
+void enet_mac_dma_config(void) {
     ErrStatus reval_state = ERROR;
 
     /* enable ethernet clock  */
@@ -92,6 +93,7 @@ static void enet_mac_dma_config(void) {
     reval_state = enet_software_reset();
     Log.d("ENET", "enet_software_reset reval_state= %d\n", reval_state);
     if (ERROR == reval_state) {
+        Log.e("ENET", "enet_software_reset ERROR");
         while (1) {
         }
     }
@@ -106,7 +108,7 @@ static void enet_mac_dma_config(void) {
     enet_init_status =
         enet_init(ENET_AUTO_NEGOTIATION, ENET_AUTOCHECKSUM_DROP_FAILFRAMES,
                   ENET_BROADCAST_FRAMES_PASS);
-    printf("enet_init_status = %d\n", enet_init_status);
+    Log.d("ENET", "enet_init reval_state= %d\n", enet_init_status);
 #else
     enet_init_status = enet_init(ENET_AUTO_NEGOTIATION, ENET_NO_AUTOCHECKSUM,
                                  ENET_BROADCAST_FRAMES_PASS);
@@ -119,7 +121,7 @@ static void enet_mac_dma_config(void) {
     \param[out] none
     \retval     none
 */
-static void nvic_configuration(void) {
+void nvic_configuration(void) {
     nvic_vector_table_set(NVIC_VECTTAB_FLASH, 0x0);
     nvic_irq_enable(ENET_IRQn, 2, 0);
 }
@@ -130,7 +132,7 @@ static void nvic_configuration(void) {
     \param[out] none
     \retval     none
 */
-static void enet_gpio_config(void) {
+void enet_gpio_config(void) {
     rcu_periph_clock_enable(RCU_GPIOA);
     rcu_periph_clock_enable(RCU_GPIOB);
     rcu_periph_clock_enable(RCU_GPIOC);
@@ -310,5 +312,6 @@ static void enet_gpio_config(void) {
     gpio_af_set(GPIOC, GPIO_AF_11, GPIO_PIN_1);
     gpio_af_set(GPIOC, GPIO_AF_11, GPIO_PIN_4);
     gpio_af_set(GPIOC, GPIO_AF_11, GPIO_PIN_5);
+    Log.d("ENET", "enet_gpio_config ok");
 #endif /* MII_MODE */
 }

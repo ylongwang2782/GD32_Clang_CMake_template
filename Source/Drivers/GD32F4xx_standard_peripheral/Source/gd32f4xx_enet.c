@@ -32,7 +32,6 @@ OF SUCH DAMAGE.
 */
 
 #include "gd32f4xx_enet.h"
-#include "stdio.h"
 
 #if defined   (__CC_ARM)                                    /*!< ARM compiler */
 __align(4)
@@ -641,7 +640,6 @@ ErrStatus enet_software_reset(void)
 
     /* reset operation complete */
     if(RESET == (ENET_DMA_BCTL & ENET_DMA_BCTL_SWR)) {
-				printf("enet_software_reset ok\n");
         enet_state = SUCCESS;
     }
 

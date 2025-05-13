@@ -3,6 +3,7 @@
 extern "C" {
 #include "gd32f4xx.h"
 }
+#include "TaskCPP.h"
 class LED {
    private:
     uint32_t port;
@@ -46,5 +47,24 @@ class LED {
     void off() { gpio_bit_reset(port, pin); }
     void toggle() { gpio_bit_toggle(port, pin); }
 };
+
+class LedBlinkTask : public TaskClassS<128> {
+    private:
+     LED &led;
+     uint32_t blink_interval;
+ 
+    public:
+     LedBlinkTask(LED &led, uint32_t interval)
+         : TaskClassS<128>("LedBlinkTask", TaskPrio_Mid),
+           led(led),
+           blink_interval(interval) {}
+ 
+     void task() override {
+         for (;;) {
+             led.toggle();
+             TaskBase::delay(blink_interval);    // 使用传入的闪烁间隔
+         }
+     }
+ };
 
 #endif    // BSP_LED_H

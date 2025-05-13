@@ -6,7 +6,9 @@
 #include "TaskCPP.h"
 #include "bsp_uart.hpp"
 #include "bsp_gpio.hpp"
-
+#include "bsp_uid.hpp"
+#include "tag_uwb_protocol.hpp"
+#include "uci.hpp"
 class CX310 {
    public:
     struct Config {
@@ -82,3 +84,39 @@ class CX310 {
         logUart.data_send(data.data(), data.size());
     }
 };
+
+class UwbTask : public TaskClassS<1024> {
+    private:
+     Uart &uart_log;
+     Uart &uart_uci;
+ 
+    public:
+     UwbTask(Uart &uart_log, Uart &uart_uci)
+         : TaskClassS<1024>("UwbTask", TaskPrio_Mid),
+           uart_log(uart_log),
+           uart_uci(uart_uci) {}
+ 
+     void task() override {
+         // Initialize with tag UID (8 bytes)
+         CX310 cx310(uart_log);
+         CX310::Config config = {.preamble_idx = 9,
+                                 .sfd_id = 5,
+                                 .psr_sync_len = 8,
+                                 .mac_datarate = 2,
+                                 .channel = 5,
+                                 .phr_datarate = 0,
+                                 .mac_mode = 0};
+         TaskBase::delay(1000);
+         cx310.init(config);
+ 
+         UIDReader &uid = UIDReader::getInstance();
+         UWBPacketBuilder builder(uid.value);
+         Uci uci(uart_uci);
+         std::vector<uint8_t> blinkFrame;
+         for (;;) {
+             blinkFrame = builder.buildTagBlinkFrame();
+             uci.data_send(blinkFrame);
+             TaskBase::delay(500);
+         }
+     }
+ };

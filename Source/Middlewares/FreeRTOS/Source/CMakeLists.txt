@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.19)
 
 # User is responsible to one mandatory option:
 #   FREERTOS_PORT, if not specified and native port detected, uses the native compile.

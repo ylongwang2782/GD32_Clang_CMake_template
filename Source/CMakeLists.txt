@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.19)
 
 # 使用字符串连接操作生成可执行文件的名称
 set(EXECUTABLE_NAME "${PROJECT_NAME}_${PROJECT_VERSION}")

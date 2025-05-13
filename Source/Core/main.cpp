@@ -24,18 +24,7 @@ UartConfig uart7Conf(uart7_info);
 Uart uartLog(uart7Conf);
 
 Logger Log(uartLog);
-LED led0(GPIOC, GPIO_PIN_13);
-
-class LedBlinkTask : public TaskClassS<256> {
-   public:
-    LedBlinkTask() : TaskClassS<256>("LedBlinkTask", TaskPrio_Mid) {}
-
-    void task() override {
-        for (;;) {
-            TaskBase::delay(500);
-        }
-    }
-};
+LED led0(GPIOA, GPIO_PIN_0);
 
 class UsartDMATask : public TaskClassS<1024> {
    public:
@@ -135,7 +124,7 @@ class LogTask : public TaskClassS<1024> {
     }
 };
 
-LedBlinkTask ledBlinkTask;
+LedBlinkTask ledBlinkTask(led0, 500);
 // UsartDMATask usartDMATask;
 LogTask logTask;
 // SpiTask spiTask;

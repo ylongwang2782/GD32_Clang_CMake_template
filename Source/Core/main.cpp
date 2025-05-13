@@ -9,9 +9,6 @@
 #include "bsp_log.hpp"
 #include "bsp_spi.hpp"
 #include "bsp_uid.hpp"
-#include "cx310.hpp"
-#include "tag_uwb_protocol.hpp"
-#include "uci.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,57 +20,18 @@ extern "C" {
 }
 #endif
 
-UartConfig usart0Conf(usart0_info);
-// UartConfig usart1Conf(usart1_info);
-// UartConfig usart2Conf(usart2_info);
-// UartConfig uart3Conf(uart3_info);
-UartConfig uart4Conf(uart4_info);
-Uart usart0(usart0Conf);
-// Uart usart1(usart1Conf);
-// Uart usart2(usart2Conf);
-// Uart uart3(uart3Conf);
-Uart uart4(uart4Conf);
+UartConfig uart7Conf(uart7_info);
+Uart uartLog(uart7Conf);
 
-Logger Log(uart4);
+Logger Log(uartLog);
 LED led0(GPIOC, GPIO_PIN_13);
 
-class UwbTask : public TaskClassS<1024> {
+class LedBlinkTask : public TaskClassS<256> {
    public:
-    UwbTask() : TaskClassS<1024>("UwbTask", TaskPrio_Mid) {}
-
-    void task() override {
-        // Initialize with tag UID (8 bytes)
-        CX310 cx310(uart4);
-        CX310::Config config = {.preamble_idx = 9,
-                                .sfd_id = 5,
-                                .psr_sync_len = 8,
-                                .mac_datarate = 2,
-                                .channel = 5,
-                                .phr_datarate = 0,
-                                .mac_mode = 0};
-        TaskBase::delay(1000);
-        cx310.init(config);
-
-        UIDReader &uid = UIDReader::getInstance();
-        UWBPacketBuilder builder(uid.value);
-        Uci uci(usart0);
-        std::vector<uint8_t> blinkFrame;
-        for (;;) {
-            led0.toggle();
-            blinkFrame = builder.buildTagBlinkFrame();
-            uci.data_send(blinkFrame);
-            TaskBase::delay(500);
-        }
-    }
-};
-
-class LedBlinkTask : public TaskClassS<1024> {
-   public:
-    LedBlinkTask() : TaskClassS<1024>("LedBlinkTask", TaskPrio_Mid) {}
+    LedBlinkTask() : TaskClassS<256>("LedBlinkTask", TaskPrio_Mid) {}
 
     void task() override {
         for (;;) {
-            // Log.d("LedBlinkTask");
             TaskBase::delay(500);
         }
     }
@@ -177,7 +135,6 @@ class LogTask : public TaskClassS<1024> {
     }
 };
 
-UwbTask uwbTask;
 LedBlinkTask ledBlinkTask;
 // UsartDMATask usartDMATask;
 LogTask logTask;

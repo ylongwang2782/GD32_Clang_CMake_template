@@ -14,16 +14,13 @@ extern "C" {
 #include "queue.h"
 #include "task.h"
 }
+#define LOG_TASK_DEPTH_SIZE 512
+#define LOG_TASK_PRIO       TaskPrio_Low
 
 // 定义日志消息的最大长度
 #define LOG_QUEUE_SIZE 256
-
 // 定义日志队列的长度
 #define LOG_QUEUE_LENGTH 20
-
-// 定义日志任务的堆栈大小和优先级
-#define LogTask_SIZE     1024
-#define LogTask_PRIORITY TaskPrio_Low
 
 // 日志消息结构体
 struct LogMessage {
@@ -136,6 +133,28 @@ class Logger {
         // 将日志消息放入队列
         if (!logQueue.add(logMsg, portMAX_DELAY)) {
             printf("Failed to add log message to queue!\n");
+        }
+    }
+};
+
+class LogTask : public TaskClassS<LOG_TASK_DEPTH_SIZE> {
+   private:
+    Logger &Log;
+
+   public:
+    LogTask(Logger &Log)
+        : TaskClassS<LOG_TASK_DEPTH_SIZE>("LogTask", LOG_TASK_PRIO), Log(Log) {}
+
+    void task() override {
+        char buffer[LOG_QUEUE_SIZE + 8];
+        for (;;) {
+            LogMessage logMsg;
+            // 从队列中获取日志消息
+            if (Log.logQueue.pop(logMsg, portMAX_DELAY)) {
+                Log.uart.data_send(
+                    reinterpret_cast<const uint8_t *>(logMsg.message.data()),
+                    strlen(logMsg.message.data()));
+            }
         }
     }
 };

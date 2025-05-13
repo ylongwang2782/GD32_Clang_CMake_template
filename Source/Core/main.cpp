@@ -45,28 +45,9 @@ class UsartDMATask : public TaskClassS<1024> {
     }
 };
 
-class LogTask : public TaskClassS<1024> {
-   public:
-    LogTask() : TaskClassS<1024>("LogTask", TaskPrio_Mid) {}
-
-    void task() override {
-        char buffer[LOG_QUEUE_SIZE + 8];
-        for (;;) {
-            LogMessage logMsg;
-            // 从队列中获取日志消息
-            if (Log.logQueue.pop(logMsg, portMAX_DELAY)) {
-                Log.uart.send(
-                    reinterpret_cast<const uint8_t *>(logMsg.message.data()),
-                    strlen(logMsg.message.data()));
-            }
-        }
-    }
-};
-
 LedBlinkTask ledBlinkTask(led0, 500);
+LogTask logTask(Log);
 // UsartDMATask usartDMATask;
-LogTask logTask;
-// SpiTask spiTask;
 
 int main(void) {
     nvic_priority_group_set(NVIC_PRIGROUP_PRE4_SUB0);

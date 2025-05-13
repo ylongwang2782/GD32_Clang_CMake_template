@@ -24,17 +24,18 @@ extern "C" {
 #endif
 
 UartConfig usart0Conf(usart0_info);
-UartConfig usart1Conf(usart1_info);
-UartConfig usart2Conf(usart2_info);
-UartConfig uart3Conf(uart3_info);
-// UartConfig uart4Conf(uart4_info);
+// UartConfig usart1Conf(usart1_info);
+// UartConfig usart2Conf(usart2_info);
+// UartConfig uart3Conf(uart3_info);
+UartConfig uart4Conf(uart4_info);
 Uart usart0(usart0Conf);
-Uart usart1(usart1Conf);
-Uart usart2(usart2Conf);
-Uart uart3(uart3Conf);
-// Uart uart4(uart4Conf);
+// Uart usart1(usart1Conf);
+// Uart usart2(usart2Conf);
+// Uart uart3(uart3Conf);
+Uart uart4(uart4Conf);
 
-Logger Log(uart3);
+Logger Log(uart4);
+LED led0(GPIOC, GPIO_PIN_13);
 
 class UwbTask : public TaskClassS<1024> {
    public:
@@ -42,7 +43,7 @@ class UwbTask : public TaskClassS<1024> {
 
     void task() override {
         // Initialize with tag UID (8 bytes)
-        CX310 cx310(usart2);
+        CX310 cx310(uart4);
         CX310::Config config = {.preamble_idx = 9,
                                 .sfd_id = 5,
                                 .psr_sync_len = 8,
@@ -50,20 +51,15 @@ class UwbTask : public TaskClassS<1024> {
                                 .channel = 5,
                                 .phr_datarate = 0,
                                 .mac_mode = 0};
+        TaskBase::delay(1000);
         cx310.init(config);
 
-        std::vector<uint8_t> tag_uid = {0x07, 0x06, 0x05, 0x04,
-                                        0x03, 0x02, 0x01, 0x00};
-        UWBPacketBuilder builder(tag_uid);
-
+        UIDReader &uid = UIDReader::getInstance();
+        UWBPacketBuilder builder(uid.value);
         Uci uci(usart0);
-        // uci.mode_set(RX_MODE);
-        // uci.mode_set(STANDBY_MODE);
-
         std::vector<uint8_t> blinkFrame;
-
         for (;;) {
-            // uwb packet test
+            led0.toggle();
             blinkFrame = builder.buildTagBlinkFrame();
             uci.data_send(blinkFrame);
             TaskBase::delay(500);
@@ -76,11 +72,8 @@ class LedBlinkTask : public TaskClassS<1024> {
     LedBlinkTask() : TaskClassS<1024>("LedBlinkTask", TaskPrio_Mid) {}
 
     void task() override {
-        LED led0(GPIOC, GPIO_PIN_6);
-
         for (;;) {
             // Log.d("LedBlinkTask");
-            led0.toggle();
             TaskBase::delay(500);
         }
     }
@@ -94,13 +87,13 @@ class UsartDMATask : public TaskClassS<1024> {
         std::vector<uint8_t> rx_data;
         for (;;) {
             // 等待 DMA 完成信号
-            // if (xSemaphoreTake(usart0_info.dmaRxDoneSema, portMAX_DELAY) ==
-            //     pdPASS) {
-            //     rx_data = usart0.getReceivedData();
-            //     if (rx_data.size() > 0) {
-            //         usart0.send(rx_data.data(), rx_data.size());
-            //     }
-            // }
+            if (xSemaphoreTake(usart0_info.dmaRxDoneSema, portMAX_DELAY) ==
+                pdPASS) {
+                // rx_data = usart0.getReceivedData();
+                // if (rx_data.size() > 0) {
+                //     usart0.send(rx_data.data(), rx_data.size());
+                // }
+            }
         }
     }
 };
@@ -186,7 +179,7 @@ class LogTask : public TaskClassS<1024> {
 
 UwbTask uwbTask;
 LedBlinkTask ledBlinkTask;
-UsartDMATask usartDMATask;
+// UsartDMATask usartDMATask;
 LogTask logTask;
 // SpiTask spiTask;
 

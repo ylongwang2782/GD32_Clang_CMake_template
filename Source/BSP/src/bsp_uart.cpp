@@ -156,5 +156,6 @@ void USART0_IRQHandler(void) { handle_usart_interrupt(&usart0_info); }
 void USART1_IRQHandler(void) { handle_usart_interrupt(&usart1_info); }
 void USART2_IRQHandler(void) { handle_usart_interrupt(&usart2_info); }
 void UART3_IRQHandler(void) { handle_usart_interrupt(&uart3_info); }
+void UART4_IRQHandler(void) { handle_usart_interrupt(&uart4_info); }
 void UART6_IRQHandler(void) { handle_usart_interrupt(&uart6_info); }
 }

@@ -9,7 +9,12 @@ extern Uart usart0;
 
 class UWBPacketBuilder {
    public:
-    // Constructor with tag UID (8 bytes)
+    // Constructor with tag UID (u64)
+    UWBPacketBuilder(uint64_t uid) : tag_uid_(uint64ToBytes(uid)) {
+        tx_counter_ = 0;
+    }
+
+    // Constructor with tag UID (8 bytes vector)
     UWBPacketBuilder(const std::vector<uint8_t>& tag_uid) : tag_uid_(tag_uid) {
         if (tag_uid.size() != 8) {
             // throw std::invalid_argument("Tag UID must be 8 bytes");
@@ -228,7 +233,7 @@ class UWBPacketBuilder {
         size_t msg_size = shared_data_msg.size() - shared_size;
 
         uint8_t packet_id = 0x06;       // PACKET_ID_TAG2UWB = 0x06
-        uint16_t size_info = 0xC801;    // 固定值 C8 01
+        uint16_t size_info = 0x8801;    // 固定值 C8 01
 
         // Serialize Packet
         current_packet_.clear();
@@ -284,5 +289,13 @@ class UWBPacketBuilder {
         current_packet_.insert(current_packet_.end(), frame_data.begin(),
                                frame_data.end());
         // usart0.data_send(current_packet_.data(), current_packet_.size());
+    }
+
+    std::vector<uint8_t> uint64ToBytes(uint64_t value) {
+        std::vector<uint8_t> bytes(8);
+        for (int i = 0; i < 8; ++i) {
+            bytes[i] = (value >> (8 * i)) & 0xFF;
+        }
+        return bytes;
     }
 };

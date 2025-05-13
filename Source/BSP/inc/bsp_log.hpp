@@ -6,8 +6,8 @@
 #include <array>
 
 #include "QueueCPP.h"
+#include "TaskCPP.h"
 #include "bsp_uart.hpp"
-
 
 extern "C" {
 #include "FreeRTOS.h"
@@ -15,16 +15,21 @@ extern "C" {
 #include "task.h"
 }
 
-#define USART_LOG      USART1
-#define LOG_QUEUE_SIZE 128
 // 定义日志消息的最大长度
-#define LOG_MESSAGE_MAX_LENGTH 128
+#define LOG_QUEUE_SIZE 256
+
 // 定义日志队列的长度
-#define LOG_QUEUE_LENGTH 10
+#define LOG_QUEUE_LENGTH 20
+
+// 定义日志任务的堆栈大小和优先级
+#define LogTask_SIZE     1024
+#define LogTask_PRIORITY TaskPrio_Low
+
 // 日志消息结构体
 struct LogMessage {
-    std::array<char, LOG_MESSAGE_MAX_LENGTH> message;
+    std::array<char, LOG_QUEUE_SIZE> message;
 };
+
 // 日志级别枚举
 enum class Level { VERBOSE, DEBUGL, INFO, WARN, ERROR, RAW };
 
@@ -37,8 +42,7 @@ class Logger {
 
     void log(Level level, const char *format, va_list args) {
         // 定义日志级别的字符串表示
-        static const char *levelStr[] = {"VERBOSE", "DEBUG", "INFO", "WARN",
-                                         "ERROR"};
+        static const char *levelStr[] = {"V", "D", "I", "W", "E", "R"};
 
         // 缓冲区大小
         constexpr size_t bufferSize = LOG_QUEUE_SIZE;
@@ -49,19 +53,21 @@ class Logger {
         // 格式化日志内容
         vsnprintf(buffer, sizeof(buffer), format, args);
 
-        if (level != Level::RAW) {
-            // 添加级别前缀
-            char finalMessage[bufferSize + 8];
-            snprintf(finalMessage, sizeof(finalMessage), "[%s]:%s\n",
-                     levelStr[static_cast<int>(level)], buffer);
-            // 输出日志
-            output(level, finalMessage);
-        } else {
-            char finalMessage[bufferSize];
-            snprintf(finalMessage, sizeof(finalMessage), "%s\n", buffer);
-            // 输出日志
-            output(level, finalMessage);
-        }
+        // 获取当前时间戳
+        uint32_t tick = xTaskGetTickCount();
+        uint32_t seconds = tick / configTICK_RATE_HZ;
+        uint32_t milliseconds =
+            (tick % configTICK_RATE_HZ) * 1000 / configTICK_RATE_HZ;
+
+        // 添加时间戳和级别前缀
+        char finalMessage[bufferSize + 32];    // 增加缓冲区大小以容纳时间戳
+        snprintf(finalMessage, sizeof(finalMessage),
+                 "[%03lu.%03lu] [%s] %s\n",    // 改动点：时间前补0 +
+                                               // 等宽字段 + 空格
+                 seconds, milliseconds, levelStr[static_cast<int>(level)],
+                 buffer);
+        // 输出日志
+        output(level, finalMessage);
     }
     void v(const char *format, ...) {
         va_list args;
@@ -104,12 +110,28 @@ class Logger {
         va_end(args);
     }
 
+    void r(uint8_t *data, size_t size) {
+        char buffer
+            [size *
+             3];    // 每个字节需要两个字符+一个空格，最后一个字节不需要空格
+        for (size_t i = 0; i < size; i++) {
+            // 最后一个字节不加空格
+            if (i == size - 1) {
+                snprintf(buffer + i * 3, 3, "%02X", data[i]);
+            } else {
+                snprintf(buffer + i * 3, 4, "%02X ", data[i]);
+            }
+        }
+        buffer[size * 3 - 1] = '\0';    // 添加字符串终止符
+        va_list emptyArgs;
+        log(Level::RAW, buffer, emptyArgs);
+    }
+
    private:
     void output(Level level, const char *message) {
         LogMessage logMsg;
-        std::strncpy(logMsg.message.data(), message,
-                     LOG_MESSAGE_MAX_LENGTH - 1);
-        logMsg.message[LOG_MESSAGE_MAX_LENGTH - 1] = '\0';
+        std::strncpy(logMsg.message.data(), message, LOG_QUEUE_SIZE - 1);
+        logMsg.message[LOG_QUEUE_SIZE - 1] = '\0';
 
         // 将日志消息放入队列
         if (!logQueue.add(logMsg, portMAX_DELAY)) {
@@ -117,7 +139,5 @@ class Logger {
         }
     }
 };
-
-extern Logger Log;
 
 #endif

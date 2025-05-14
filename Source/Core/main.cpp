@@ -26,12 +26,12 @@ void lwip_netif_status_callback(struct netif* netif) {
           ip4_addr2_16(&netif->ip_addr), ip4_addr3_16(&netif->ip_addr),
           ip4_addr4_16(&netif->ip_addr));
     if (((netif->flags & NETIF_FLAG_UP) != 0) && (0 != netif->ip_addr.addr)) {
-        /* initilaize the tcp server: telnet 8000 */
-        hello_gigadevice_init();
-        Log.d("BOOT", "tcp server initialized");
-        /* initilaize the tcp client: echo 10260 */
-        tcp_client_init();
-        Log.d("BOOT", "tcp client initialized");
+        // /* initilaize the tcp server: telnet 8000 */
+        // hello_gigadevice_init();
+        // Log.d("BOOT", "tcp server initialized");
+        // /* initilaize the tcp client: echo 10260 */
+        // tcp_client_init();
+        // Log.d("BOOT", "tcp client initialized");
         /* initilaize the udp: echo 1025 */
         udp_echo_init();
         Log.d("BOOT", "udp echo initialized");

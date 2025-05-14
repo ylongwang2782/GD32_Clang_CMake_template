@@ -284,6 +284,7 @@ static err_t hello_gigadevice_recv(int fd, void *data, int len) {
     \retval     none
 */
 static void hello_task(void *arg) {
+    Log.d("HELLO", "hello task started");
     int ret;
     int sockfd = -1, newfd = -1;
     uint32_t len;

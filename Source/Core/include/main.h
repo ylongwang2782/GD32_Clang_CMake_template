@@ -41,6 +41,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "stdint.h"
 #include "task.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // #define USE_DHCP       /* enable DHCP, if disabled static address is used */
 
 /* MAC address: MAC_ADDR0:MAC_ADDR1:MAC_ADDR2:MAC_ADDR3:MAC_ADDR4:MAC_ADDR5 */
@@ -83,6 +87,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /* clock the PHY from external 25MHz crystal (only for MII mode) */
 #ifdef MII_MODE
 #define PHY_CLOCK_MCO
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* MAIN_H */

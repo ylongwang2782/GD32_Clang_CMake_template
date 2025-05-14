@@ -6,6 +6,9 @@ target_sources(
           ./Enet/gd32f4xx_enet_eval.cpp
           ./Enet/hello_gigadevice.cpp
           ./Enet/udp_echo.cpp
-          ./Enet/tcp_client.cpp)
+          ./Enet/tcp_client.cpp
+          ./Enet/ethernetif.c
+          ./Enet/sys_arch.c
+          )
 
 target_include_directories(${EXECUTABLE_NAME} PUBLIC ./ ./Enet ./include)

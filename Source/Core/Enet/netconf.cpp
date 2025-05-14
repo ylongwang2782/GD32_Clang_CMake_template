@@ -37,7 +37,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 
 #include "bsp_log.hpp"
-#include "ethernetif.h"
 #include "lwip/dhcp.h"
 #include "lwip/errno.h"
 #include "lwip/mem.h"
@@ -46,7 +45,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "queue.h"
 #include "tcpip.h"
 
+#include "ethernetif.h"
+
 extern Logger Log;
+extern err_t ethernetif_init(struct netif *netif);
 
 #define MAX_DHCP_TRIES 4
 volatile uint32_t g_localtime =

@@ -18,9 +18,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 enable_language(ASM C CXX)
 
 if(BUILD_VARIANT STREQUAL "DEBUG")
-project(GD32_CPP_OS_CMAKE VERSION 1.0)
+  project(GD32_CPP_OS_CMAKE VERSION 1.0)
 elseif(BUILD_VARIANT STREQUAL "RELEASE")
-project(GD32_CPP_OS_CMAKE VERSION 1.0)
+  project(GD32_CPP_OS_CMAKE VERSION 1.0)
 else()
   message(FATAL_ERROR "Unknown BUILD_VARIANT value: ${BUILD_VARIANT}")
 endif()
@@ -32,6 +32,6 @@ add_compile_options(
 
 add_link_options(-Wl,--unresolved-symbols=ignore-in-object-files)
 
-add_definitions(-DGD32F470 -DGCC)
+add_definitions(-DGD32F470 -DGCC -DUSE_STDPERIPH_DRIVER)
 
 add_subdirectory(Source)

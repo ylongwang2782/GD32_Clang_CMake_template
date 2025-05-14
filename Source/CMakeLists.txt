@@ -10,7 +10,7 @@ add_compile_options(
 )
 
 # 添加可执行文件目标
-add_executable(${EXECUTABLE_NAME})
+add_executable(${EXECUTABLE_NAME} $<TARGET_OBJECTS:lwip_obj>)
 
 # 设置目标的私有包含目录
 include_directories(Config # 配置文件目录
@@ -20,10 +20,10 @@ add_subdirectory(BSP)
 add_subdirectory(Core)
 add_subdirectory(Drivers)
 add_subdirectory(Middlewares)
-# add_subdirectory(Retarget)
 
 # 链接目标与其他库
-target_link_libraries(${EXECUTABLE_NAME} BSP Drivers freertos_kernel FreeRTOScpp)
+target_link_libraries(${EXECUTABLE_NAME} BSP Drivers freertos_kernel
+                      FreeRTOScpp lwip_obj)
 
 # ===============================================================================
 

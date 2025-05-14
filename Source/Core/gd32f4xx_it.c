@@ -32,7 +32,15 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "gd32f4xx.h"
 #include "gd32f4xx_it.h"
+#include "main.h"
+#include "semphr.h"
+#include "queue.h"
+#include "lwip/sys.h"
+
+extern xSemaphoreHandle g_rx_semaphore;
+
 /*!
     \brief      this function handles NMI exception
     \param[in]  none
@@ -102,5 +110,32 @@ void UsageFault_Handler(void) {
 void DebugMon_Handler(void) {
     /* if DebugMon exception occurs, go to infinite loop */
     while (1) {
+    }
+}
+
+
+/*!
+    \brief      this function handles ethernet interrupt request
+    \param[in]  none
+    \param[out] none
+    \retval     none
+*/
+void ENET_IRQHandler(void)
+{
+    portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
+
+    /* frame received */
+    if(SET == enet_interrupt_flag_get(ENET_DMA_INT_FLAG_RS)){ 
+        /* give the semaphore to wakeup LwIP task */
+        xSemaphoreGiveFromISR(g_rx_semaphore, &xHigherPriorityTaskWoken);
+    }
+
+    /* clear the enet DMA Rx interrupt pending bits */
+    enet_interrupt_flag_clear(ENET_DMA_INT_FLAG_RS_CLR);
+    enet_interrupt_flag_clear(ENET_DMA_INT_FLAG_NI_CLR);
+
+    /* switch tasks if necessary */
+    if(pdFALSE != xHigherPriorityTaskWoken){
+        portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
     }
 }

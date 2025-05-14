@@ -21,8 +21,8 @@ int fputc(int ch, FILE *f) {
 extern "C" {
 int _write(int fd, char *pBuffer, int size) {
     for (int i = 0; i < size; i++) {
-        while (RESET == usart_flag_get(USART1, USART_FLAG_TBE));
-        usart_data_transmit(USART1, (uint8_t)pBuffer[i]);
+        while (RESET == usart_flag_get(UART7, USART_FLAG_TBE));
+        usart_data_transmit(UART7, (uint8_t)pBuffer[i]);
     }
     return size;
 }

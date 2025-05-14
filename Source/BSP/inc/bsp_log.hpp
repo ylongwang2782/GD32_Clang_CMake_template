@@ -1,3 +1,4 @@
+#pragma once
 #ifndef _LOG_H_
 #define _LOG_H_
 
@@ -8,14 +9,11 @@
 #include "QueueCPP.h"
 #include "TaskCPP.h"
 #include "bsp_uart.hpp"
-
-extern "C" {
-#include "FreeRTOS.h"
 #include "queue.h"
 #include "task.h"
-}
+
 #define LOG_TASK_DEPTH_SIZE 512
-#define LOG_TASK_PRIO       TaskPrio_Low
+#define LOG_TASK_PRIO       TaskPrio_Highest
 
 // 定义日志消息的最大长度
 #define LOG_QUEUE_SIZE 256
@@ -28,17 +26,23 @@ struct LogMessage {
 };
 
 // 日志级别枚举
-enum class Level { VERBOSE, DEBUGL, INFO, WARN, ERROR, RAW };
 
 class Logger {
    public:
+    enum class Level { VERBOSE, DEBUGL, INFO, WARN, ERROR, RAW = VERBOSE };
+
     Logger(Uart& uart) : uart(uart), logQueue("LogQueue") {}
 
     Uart& uart;    // 串口对象的引用
     FreeRTOScpp::Queue<LogMessage, LOG_QUEUE_LENGTH> logQueue;
 
+    Level currentLevel = Level::VERBOSE;
+
+    void setLogLevel(Level level) { currentLevel = level; }
+
     void log(Level level, const char* module, const char* format,
              va_list args) {
+        // if (level < currentLevel) return;
         // 定义日志级别的字符串表示
         static const char* levelStr[] = {"V", "D", "I", "W", "E", "R"};
 
@@ -66,12 +70,14 @@ class Logger {
         output(level, finalMessage);
     }
     void v(const char* module, const char* format, ...) {
+        if (Level::VERBOSE < currentLevel) return;
         va_list args;
         va_start(args, format);
         log(Level::VERBOSE, module, format, args);
         va_end(args);
     }
     void d(const char* module, const char* format, ...) {
+        if (Level::DEBUGL < currentLevel) return;
         va_list args;
         va_start(args, format);
         log(Level::DEBUGL, module, format, args);
@@ -79,6 +85,7 @@ class Logger {
     }
 
     void i(const char* module, const char* format, ...) {
+        if (Level::INFO < currentLevel) return;
         va_list args;
         va_start(args, format);
         log(Level::INFO, module, format, args);
@@ -86,6 +93,7 @@ class Logger {
     }
 
     void w(const char* module, const char* format, ...) {
+        if (Level::WARN < currentLevel) return;
         va_list args;
         va_start(args, format);
         log(Level::WARN, module, format, args);
@@ -93,6 +101,7 @@ class Logger {
     }
 
     void e(const char* module, const char* format, ...) {
+        if (Level::ERROR < currentLevel) return;
         va_list args;
         va_start(args, format);
         log(Level::ERROR, module, format, args);
@@ -100,6 +109,7 @@ class Logger {
     }
 
     void r(uint8_t* data, size_t size) {
+        if (Level::RAW < currentLevel) return;
         // 每个字节需要两个字符+一个空格，最后一个字节不需要空格
         char buffer[size * 3];
         for (size_t i = 0; i < size; i++) {

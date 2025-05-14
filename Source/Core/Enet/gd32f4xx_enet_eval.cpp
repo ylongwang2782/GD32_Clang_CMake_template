@@ -56,11 +56,11 @@ void enet_system_setup(void) {
 
     /* configure the GPIO ports for ethernet pins */
     enet_gpio_config();
-    Log.d("ENET", "enet_gpio_config done");
+    Log.v("ENET", "enet_gpio_config done");
 
     /* configure the ethernet MAC/DMA */
     enet_mac_dma_config();
-    Log.d("ENET", "enet_mac_dma_config done");
+    Log.v("ENET", "enet_mac_dma_config done");
 
     if (0 == enet_init_status) {
         while (1) {
@@ -69,7 +69,7 @@ void enet_system_setup(void) {
 
     enet_interrupt_enable(ENET_DMA_INT_NIE);
     enet_interrupt_enable(ENET_DMA_INT_RIE);
-    Log.d("ENET", "enet_interrupt_enable done");
+    Log.v("ENET", "enet_interrupt_enable done");
 }
 
 /*!
@@ -88,10 +88,10 @@ void enet_mac_dma_config(void) {
 
     /* reset ethernet on AHB bus */
     enet_deinit();
-    Log.d("ENET", "enet_deinit done");
+    Log.v("ENET", "enet_deinit done");
 
     reval_state = enet_software_reset();
-    Log.d("ENET", "enet_software_reset reval_state= %d\n", reval_state);
+    Log.v("ENET", "enet_software_reset reval_state= %d\n", reval_state);
     if (ERROR == reval_state) {
         Log.e("ENET", "enet_software_reset ERROR");
         while (1) {

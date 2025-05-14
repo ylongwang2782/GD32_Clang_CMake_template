@@ -154,7 +154,7 @@ extern Logger Log;
     \retval     none
 */
 static void udp_task(void *arg) {
-    Log.d("UDP", "UDP task start");
+    Log.v("UDP", "UDP task start");
     int ret, recvnum, sockfd = -1;
     int udp_port = 1025;
     struct sockaddr_in rmt_addr, bod_addr;
@@ -163,29 +163,29 @@ static void udp_task(void *arg) {
     ip_addr_t ipaddr;
 
     IP4_ADDR(&ipaddr, IP_S_ADDR0, IP_S_ADDR1, IP_S_ADDR2, IP_S_ADDR3);
-    Log.d("UDP", "IP address set: %d.%d.%d.%d", ip4_addr1_16(&ipaddr),
+    Log.v("UDP", "IP address set: %d.%d.%d.%d", ip4_addr1_16(&ipaddr),
           ip4_addr2_16(&ipaddr), ip4_addr3_16(&ipaddr), ip4_addr4_16(&ipaddr));
 
     /* set up address to connect to */
     rmt_addr.sin_family = AF_INET;
-    Log.d("UDP", "Remote address family set to AF_INET");
+    Log.v("UDP", "Remote address family set to AF_INET");
 
     rmt_addr.sin_port = htons(udp_port);
-    Log.d("UDP", "Remote port set to %d", udp_port);
+    Log.v("UDP", "Remote port set to %d", udp_port);
 
     rmt_addr.sin_addr.s_addr = ipaddr.addr;
-    Log.d("UDP", "Remote IP address set");
+    Log.v("UDP", "Remote IP address set");
 
     bod_addr.sin_family = AF_INET;
-    Log.d("UDP", "Bind address family set to AF_INET");
+    Log.v("UDP", "Bind address family set to AF_INET");
 
     bod_addr.sin_port = htons(udp_port);
-    Log.d("UDP", "Bind port set to %d", udp_port);
+    Log.v("UDP", "Bind port set to %d", udp_port);
 
     bod_addr.sin_addr.s_addr = htons(INADDR_ANY);
-    Log.d("UDP", "Bind IP address set to INADDR_ANY");
+    Log.v("UDP", "Bind IP address set to INADDR_ANY");
 
-    Log.d("UDP", "UDP server start");
+    Log.v("UDP", "UDP server start");
 
     while (1) {
         /* create the socket */

@@ -20,9 +20,9 @@ Uart uartLog(uart7Conf);
 Logger Log(uartLog);
 
 void lwip_netif_status_callback(struct netif* netif) {
-    Log.d("NET", "netif status changed: %d", netif->flags);
+    Log.v("NET", "netif status changed: %d", netif->flags);
     // logd addr
-    Log.d("NET", "netif addr: %d.%d.%d.%d", ip4_addr1_16(&netif->ip_addr),
+    Log.v("NET", "netif addr: %d.%d.%d.%d", ip4_addr1_16(&netif->ip_addr),
           ip4_addr2_16(&netif->ip_addr), ip4_addr3_16(&netif->ip_addr),
           ip4_addr4_16(&netif->ip_addr));
     if (((netif->flags & NETIF_FLAG_UP) != 0) && (0 != netif->ip_addr.addr)) {
@@ -34,7 +34,7 @@ void lwip_netif_status_callback(struct netif* netif) {
         // Log.d("BOOT", "tcp client initialized");
         /* initilaize the udp: echo 1025 */
         udp_echo_init();
-        Log.d("BOOT", "udp echo initialized");
+        Log.v("NET", "udp echo initialized");
     }
 }
 
@@ -45,20 +45,23 @@ static void InitTask(void* pvParameters) {
     LED led0(GPIOA, GPIO_PIN_0);
     LedBlinkTask ledBlinkTask(led0, 500);
     ledBlinkTask.give();
+    Log.v("BOOT", "ledBlinkTask initialized");
 
     LogTask logTask(Log);
+    Log.setLogLevel(Logger::Level::VERBOSE);
     logTask.give();
+    Log.v("BOOT", "logTask initialized");
 
     /* configure ethernet (GPIOs, clocks, MAC, DMA) */
     enet_system_setup();
-    Log.d("BOOT", "ethernet initialized");
+    Log.v("BOOT", "ethernet initialized");
 
     /* initilaize the LwIP stack */
     lwip_stack_init();
-    Log.d("BOOT", "lwip stack initialized");
+    Log.v("BOOT", "lwip stack initialized");
 
     while (1) {
-        Log.d("SYS", "heap minimum: %d", xPortGetMinimumEverFreeHeapSize());
+        Log.v("SYS", "heap minimum: %d", xPortGetMinimumEverFreeHeapSize());
         vTaskDelay(pdMS_TO_TICKS(5000));
     }
 }

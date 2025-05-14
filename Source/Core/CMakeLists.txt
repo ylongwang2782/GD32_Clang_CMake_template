@@ -8,4 +8,4 @@ target_sources(
           ./Enet/udp_echo.cpp
           ./Enet/tcp_client.cpp)
 
-target_include_directories(${EXECUTABLE_NAME} PUBLIC ./ ./Enet)
+target_include_directories(${EXECUTABLE_NAME} PUBLIC ./ ./Enet ./include)

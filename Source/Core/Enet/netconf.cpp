@@ -36,6 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <stdio.h>
 
+#include "bsp_log.hpp"
 #include "ethernetif.h"
 #include "lwip/dhcp.h"
 #include "lwip/errno.h"
@@ -44,6 +45,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "main.h"
 #include "queue.h"
 #include "tcpip.h"
+
+extern Logger Log;
 
 #define MAX_DHCP_TRIES 4
 volatile uint32_t g_localtime =
@@ -86,6 +89,8 @@ void lwip_stack_init(void) {
     gw.addr = 0;
 #else
     IP4_ADDR(&ipaddr, IP_ADDR0, IP_ADDR1, IP_ADDR2, IP_ADDR3);
+    Log.d("NET", "static ip address set to %d.%d.%d.%d", ip4_addr1_16(&ipaddr),
+          ip4_addr2_16(&ipaddr), ip4_addr3_16(&ipaddr), ip4_addr4_16(&ipaddr));
     IP4_ADDR(&netmask, NETMASK_ADDR0, NETMASK_ADDR1, NETMASK_ADDR2,
              NETMASK_ADDR3);
     IP4_ADDR(&gw, GW_ADDR0, GW_ADDR1, GW_ADDR2, GW_ADDR3);

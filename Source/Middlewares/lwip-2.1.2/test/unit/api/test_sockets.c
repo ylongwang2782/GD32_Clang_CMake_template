@@ -9,7 +9,7 @@
 #include "lwip/tcpip.h"
 #include "lwip/priv/tcp_priv.h"
 #include "lwip/api.h"
-
+#include <sys/time.h> 
 
 static int
 test_sockets_get_used_count(void)

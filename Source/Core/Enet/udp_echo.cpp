@@ -143,6 +143,8 @@ static void udp_task(void *arg) {
 #endif /* ((LWIP_SOCKET == 0) && (LWIP_NETCONN == 1)) */
 
 #if LWIP_SOCKET
+#include "bsp_log.hpp"
+extern Logger Log;
 #include "lwip/sockets.h"
 
 /*!
@@ -169,6 +171,7 @@ static void udp_task(void *arg) {
     bod_addr.sin_family = AF_INET;
     bod_addr.sin_port = htons(udp_port);
     bod_addr.sin_addr.s_addr = htons(INADDR_ANY);
+    Log.d("UDP","UDP server start");
 
     while (1) {
         /* create the socket */

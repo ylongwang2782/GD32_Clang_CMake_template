@@ -59,7 +59,7 @@
 
 #include <stdio.h>
 #include <string.h>
-
+#include <sys/time.h> 
 #if LWIP_SOCKET && LWIP_IPV4 /* this uses IPv4 loopback sockets, currently */
 
 #ifndef TEST_SOCKETS_STRESS

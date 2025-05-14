@@ -38,7 +38,7 @@
  */
 
 #include "lwip/opt.h"
-
+#include <sys/time.h> 
 #if LWIP_SOCKET /* don't build if not configured for use in lwipopts.h */
 
 #include "lwip/sockets.h"

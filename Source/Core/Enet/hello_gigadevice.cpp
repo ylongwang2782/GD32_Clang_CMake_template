@@ -198,6 +198,8 @@ static void hello_task(void *arg) {
 #endif /* ((LWIP_SOCKET == 0) && (LWIP_NETCONN == 1)) */
 
 #if LWIP_SOCKET
+#include "bsp_log.hpp"
+extern Logger Log;
 #include "lwip/sockets.h"
 
 struct recev_packet {
@@ -297,6 +299,8 @@ static void hello_task(void *arg) {
 
     name_recv.length = 0;
     name_recv.done = 0;
+
+    
 
     while (1) {
         /* create a TCP socket */

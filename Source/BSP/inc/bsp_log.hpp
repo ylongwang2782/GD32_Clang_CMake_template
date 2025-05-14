@@ -1,3 +1,4 @@
+#pragma once
 #ifndef _LOG_H_
 #define _LOG_H_
 
@@ -8,12 +9,9 @@
 #include "QueueCPP.h"
 #include "TaskCPP.h"
 #include "bsp_uart.hpp"
-
-extern "C" {
-#include "FreeRTOS.h"
 #include "queue.h"
 #include "task.h"
-}
+
 #define LOG_TASK_DEPTH_SIZE 512
 #define LOG_TASK_PRIO       TaskPrio_Highest
 

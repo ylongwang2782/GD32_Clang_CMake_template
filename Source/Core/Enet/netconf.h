@@ -36,8 +36,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define NETCONF_H
 #include "SemaphoreCPP.h"
 #include "TaskCPP.h"
-#include "main.h"
 #include "enet.h"
+#include "main.h"
+
 
 #define ETH_TASK_DEPTH 1024
 

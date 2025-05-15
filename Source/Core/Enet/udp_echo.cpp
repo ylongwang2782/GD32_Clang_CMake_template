@@ -37,6 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 #include <string.h>
 
+#include "TaskCPP.h"
 #include "gd32f4xx.h"
 #include "lwip/api.h"
 #include "lwip/memp.h"
@@ -57,68 +58,59 @@ UdpTask::UdpTask() : TaskClassS<UDP_TASK_DEPTH>("UdpTask", TaskPrio_Mid) {}
 void UdpTask::task() {
     Log.v("UDP", "UDP task start");
     int ret, recvnum, sockfd = -1;
-    int udp_port = 1025;
+    int rmt_port = 8080;
+    int bod_port = 8080;
     struct sockaddr_in rmt_addr, bod_addr;
     char buf[100];
     u32_t len;
     ip_addr_t ipaddr;
+    std::vector<uint8_t> tx_buffer;
 
     IP4_ADDR(&ipaddr, IP_S_ADDR0, IP_S_ADDR1, IP_S_ADDR2, IP_S_ADDR3);
-    Log.v("UDP", "IP address set: %d.%d.%d.%d", ip4_addr1_16(&ipaddr),
-          ip4_addr2_16(&ipaddr), ip4_addr3_16(&ipaddr), ip4_addr4_16(&ipaddr));
 
-    /* set up address to connect to */
     rmt_addr.sin_family = AF_INET;
-    Log.v("UDP", "Remote address family set to AF_INET");
-
-    rmt_addr.sin_port = htons(udp_port);
-    Log.v("UDP", "Remote port set to %d", udp_port);
-
+    rmt_addr.sin_port = htons(rmt_port);
     rmt_addr.sin_addr.s_addr = ipaddr.addr;
-    Log.v("UDP", "Remote IP address set");
 
     bod_addr.sin_family = AF_INET;
-    Log.v("UDP", "Bind address family set to AF_INET");
-
-    bod_addr.sin_port = htons(udp_port);
-    Log.v("UDP", "Bind port set to %d", udp_port);
-
+    bod_addr.sin_port = htons(bod_port);
     bod_addr.sin_addr.s_addr = htons(INADDR_ANY);
-    Log.v("UDP", "Bind IP address set to INADDR_ANY");
 
     Log.v("UDP", "UDP server start");
 
-    while (1) {
-        /* create the socket */
-        sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-        if (sockfd < 0) {
-            continue;
-        }
-
-        ret = bind(sockfd, (struct sockaddr *)&bod_addr, sizeof(bod_addr));
-
-        if (ret < 0) {
-            lwip_close(sockfd);
-            sockfd = -1;
-            continue;
-        }
-
-        len = sizeof(rmt_addr);
-        /* reveive packets from rmt_addr, and limit a reception to MAX_BUF_SIZE
-         * bytes */
-        recvnum = recvfrom(sockfd, buf, MAX_BUF_SIZE, 0,
-                           (struct sockaddr *)&rmt_addr, &len);
-
-        while (-1 != sockfd) {
-            if (recvnum > 0) {
-                /* send packets to rmt_addr */
-                sendto(sockfd, buf, recvnum, 0, (struct sockaddr *)&rmt_addr,
-                       sizeof(rmt_addr));
-            }
-            recvnum = recvfrom(sockfd, buf, MAX_BUF_SIZE, 0,
-                               (struct sockaddr *)&rmt_addr, &len);
-        }
-
-        lwip_close(sockfd);
+    send_buf.resize(100);
+    for (int i = 0; i < 100; i++) {
+        send_buf[i] = i;
     }
+
+    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    
+    if (sockfd < 0) {
+        vTaskDelete(nullptr);
+        return;
+    }
+
+    if (bind(sockfd, (struct sockaddr *)&bod_addr, sizeof(bod_addr)) < 0) {
+        lwip_close(sockfd);
+        vTaskDelete(nullptr);
+        return;
+    }
+
+    len = sizeof(rmt_addr);
+    while (1) {
+        // if (recvnum > 0) {
+        //     /* send packets to rmt_addr */
+        //     sendto(sockfd, buf, recvnum, 0, (struct sockaddr *)&rmt_addr,
+        //            sizeof(rmt_addr));
+        // }
+        // recvnum = recvfrom(sockfd, buf, MAX_BUF_SIZE, 0,
+        //                    (struct sockaddr *)&rmt_addr, &len);
+
+        sendto(sockfd, send_buf.data(), send_buf.size(), 0,
+               (struct sockaddr *)&rmt_addr, sizeof(rmt_addr));
+
+        TaskBase::delay(500);
+    }
+
+    lwip_close(sockfd);
 }

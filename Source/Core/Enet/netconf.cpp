@@ -37,6 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 
 #include "bsp_log.hpp"
+#include "enet.h"
 #include "ethernetif.h"
 #include "lwip/dhcp.h"
 #include "lwip/errno.h"
@@ -46,7 +47,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "queue.h"
 #include "tcpip.h"
 #include "udp_echo.h"
-#include "enet.h"
+
 
 extern Logger Log;
 
@@ -63,7 +64,16 @@ void EthTask::task() {
 
     UdpTask udpTask;
     udpTask.give();
+
+    // send buf test
+    udpTask.send_buf.resize(100);
+    for (int i = 0; i < 100; i++) {
+        udpTask.send_buf[i] = i;
+    }
     for (;;) {
+        for (int i = 0; i < 100; i++) {
+            udpTask.send_buf[i] = i;
+        }
         TaskBase::delay(100);
     }
 }

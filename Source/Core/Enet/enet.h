@@ -32,13 +32,21 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef GD32F4xx_ENET_EVAL_H
-#define GD32F4xx_ENET_EVAL_H
+#ifndef ENET_H
+#define ENET_H
 
+#include "gd32f4xx.h"
 #include "netif.h"
 
-/* function declarations */
-/* setup ethernet system(GPIOs, clocks, MAC, DMA, systick) */
-void enet_system_setup(void);
+class Enet {
+   private:
+    static __IO uint32_t enet_init_status;
 
-#endif /* GD32F4xx_ENET_EVAL_H */
+   public:
+    static void enet_system_setup(void);
+    static void enet_gpio_config(void);
+    static void enet_mac_dma_config(void);
+    static void nvic_configuration(void);
+};
+
+#endif /* ENET_H */

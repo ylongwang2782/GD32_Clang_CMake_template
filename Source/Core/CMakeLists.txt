@@ -3,11 +3,9 @@ target_sources(
   PRIVATE ./gd32f4xx_it.c
           ./main.cpp
           ./Enet/netconf.cpp
-          ./Enet/gd32f4xx_enet_eval.cpp
-          ./Enet/hello_gigadevice.cpp
+          ./Enet/enet.cpp
           ./Enet/udp_echo.cpp
-          ./Enet/tcp_client.cpp
-          ./Enet/ethernetif.c
+          ./Enet/ethernetif.cpp
           ./Enet/sys_arch.c
           )
 

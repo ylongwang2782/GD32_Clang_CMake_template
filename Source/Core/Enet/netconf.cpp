@@ -37,6 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 
 #include "bsp_log.hpp"
+#include "ethernetif.h"
 #include "lwip/dhcp.h"
 #include "lwip/errno.h"
 #include "lwip/mem.h"
@@ -44,31 +45,39 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "main.h"
 #include "queue.h"
 #include "tcpip.h"
-
-#include "ethernetif.h"
+#include "udp_echo.h"
 
 extern Logger Log;
-extern err_t ethernetif_init(struct netif *netif);
 
-#define MAX_DHCP_TRIES 4
-volatile uint32_t g_localtime =
-    0; /* for creating a time reference incremented by 10ms */
+EthTask::EthTask() : TaskClassS<ETH_TASK_DEPTH>("EthTask", TaskPrio_Mid) {}
 
-int errno;
+void EthTask::task() {
+    /* configure ethernet (GPIOs, clocks, MAC, DMA) */
+    enet_system_setup();
+    Log.v("BOOT", "ethernet initialized");
 
-typedef enum {
-    DHCP_START = 0,
-    DHCP_WAIT_ADDRESS,
-    DHCP_ADDRESS_ASSIGNED,
-    DHCP_TIMEOUT
-} dhcp_state_enum;
+    /* initilaize the LwIP stack */
+    lwip_stack_init();
+    Log.v("BOOT", "lwip stack initialized");
 
-#ifdef USE_DHCP
-dhcp_state_enum dhcp_state = DHCP_START;
-#endif /* USE_DHCP */
+    UdpTask udpTask;
+    udpTask.give();
+    for (;;) {
+        TaskBase::delay(100);
+    }
+}
 
-struct netif g_mynetif;
-ip_addr_t ip_address = {0};
+void EthTask::lwip_netif_status_callback(struct netif *netif) {
+    Log.v("NET", "netif status changed: %d", netif->flags);
+    // logd addr
+    Log.v("NET", "netif addr: %d.%d.%d.%d", ip4_addr1_16(&netif->ip_addr),
+          ip4_addr2_16(&netif->ip_addr), ip4_addr3_16(&netif->ip_addr),
+          ip4_addr4_16(&netif->ip_addr));
+    if (((netif->flags & NETIF_FLAG_UP) != 0) && (0 != netif->ip_addr.addr)) {
+        /* initilaize the udp: echo 1025 */
+        Log.v("NET", "udp echo initialized");
+    }
+}
 
 /*!
     \brief      initializes the LwIP stack
@@ -76,97 +85,39 @@ ip_addr_t ip_address = {0};
     \param[out] none
     \retval     none
 */
-void lwip_stack_init(void) {
+void EthTask::lwip_stack_init(void) {
     ip_addr_t ipaddr;
     ip_addr_t netmask;
     ip_addr_t gw;
 
     /* create tcp_ip stack thread */
     tcpip_init(NULL, NULL);
+    Log.v("NET", "tcpip_init initialized");
 
     /* IP address setting */
-#ifdef USE_DHCP
-    ipaddr.addr = 0;
-    netmask.addr = 0;
-    gw.addr = 0;
-#else
     IP4_ADDR(&ipaddr, IP_ADDR0, IP_ADDR1, IP_ADDR2, IP_ADDR3);
-    Log.d("NET", "static ip address set to %d.%d.%d.%d", ip4_addr1_16(&ipaddr),
+    Log.v("NET", "static ip address set to %d.%d.%d.%d", ip4_addr1_16(&ipaddr),
           ip4_addr2_16(&ipaddr), ip4_addr3_16(&ipaddr), ip4_addr4_16(&ipaddr));
     IP4_ADDR(&netmask, NETMASK_ADDR0, NETMASK_ADDR1, NETMASK_ADDR2,
              NETMASK_ADDR3);
+    Log.v("NET", "netmask set to %d.%d.%d.%d", ip4_addr1_16(&netmask),
+          ip4_addr2_16(&netmask), ip4_addr3_16(&netmask),
+          ip4_addr4_16(&netmask));
     IP4_ADDR(&gw, GW_ADDR0, GW_ADDR1, GW_ADDR2, GW_ADDR3);
-
-#endif /* USE_DHCP */
+    Log.v("NET", "gateway set to %d.%d.%d.%d", ip4_addr1_16(&gw),
+          ip4_addr2_16(&gw), ip4_addr3_16(&gw), ip4_addr4_16(&gw));
 
     netif_add(&g_mynetif, &ipaddr, &netmask, &gw, NULL, &ethernetif_init,
               &tcpip_input);
+    Log.v("NET", "ethernet interface added");
 
     /* registers the default network interface */
     netif_set_default(&g_mynetif);
+    Log.v("NET", "default network interface set");
     netif_set_status_callback(&g_mynetif, lwip_netif_status_callback);
+    Log.v("NET", "network interface status callback set");
 
     /* when the netif is fully configured this function must be called */
     netif_set_up(&g_mynetif);
+    Log.v("NET", "network interface set up");
 }
-
-#ifdef USE_DHCP
-/*!
-    \brief      dhcp_task
-    \param[in]  none
-    \param[out] none
-    \retval     none
-*/
-void dhcp_task(void *pvParameters) {
-    ip_addr_t ipaddr;
-    ip_addr_t netmask;
-    ip_addr_t gw;
-    struct dhcp *dhcp_client;
-
-    for (;;) {
-        switch (dhcp_state) {
-            case DHCP_START:
-                dhcp_start(&g_mynetif);
-                /* IP address should be set to 0 every time we want to assign a
-                 * new DHCP address*/
-                dhcp_state = DHCP_WAIT_ADDRESS;
-                break;
-
-            case DHCP_WAIT_ADDRESS:
-                /* read the new IP address */
-                ip_address.addr = g_mynetif.ip_addr.addr;
-
-                if (0 != ip_address.addr) {
-                    dhcp_state = DHCP_ADDRESS_ASSIGNED;
-                    printf(
-                        "\r\nDHCP -- eval board ip address: %d.%d.%d.%d \r\n",
-                        ip4_addr1_16(&ip_address), ip4_addr2_16(&ip_address),
-                        ip4_addr3_16(&ip_address), ip4_addr4_16(&ip_address));
-                } else {
-                    /* DHCP timeout */
-                    dhcp_client = netif_dhcp_data(&g_mynetif);
-                    if (dhcp_client->tries > MAX_DHCP_TRIES) {
-                        dhcp_state = DHCP_TIMEOUT;
-                        /* stop DHCP */
-                        dhcp_stop(&g_mynetif);
-
-                        /* static address used */
-                        IP4_ADDR(&ipaddr, IP_ADDR0, IP_ADDR1, IP_ADDR2,
-                                 IP_ADDR3);
-                        IP4_ADDR(&netmask, NETMASK_ADDR0, NETMASK_ADDR1,
-                                 NETMASK_ADDR2, NETMASK_ADDR3);
-                        IP4_ADDR(&gw, GW_ADDR0, GW_ADDR1, GW_ADDR2, GW_ADDR3);
-                        netif_set_addr(&g_mynetif, &ipaddr, &netmask, &gw);
-                    }
-                }
-                break;
-
-            default:
-                break;
-        }
-
-        /* wait 250 ms */
-        vTaskDelay(250);
-    }
-}
-#endif /* USE_DHCP */

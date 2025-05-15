@@ -48,112 +48,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define UDP_TASK_PRIO (tskIDLE_PRIORITY + 5)
 #define MAX_BUF_SIZE  50
 
-#if ((LWIP_SOCKET == 0) && (LWIP_NETCONN == 1))
-
-struct recev_packet {
-    int length;
-    char bytes[MAX_BUF_SIZE];
-};
-
-static err_t udp_echo_recv(struct netconn *conn, struct netbuf *buf,
-                           const ip_addr_t *addr, u16_t port);
-
-/*!
-    \brief      called when a data is received
-    \param[in]  conn: the UDP netconn over which to send data
-    \param[in]  buf: the received data
-    \param[in]  addr: the IP address to send packet to
-    \param[in]  port: the port number to send packet to
-    \param[out] none
-    \retval     err_t: error value
-*/
-static err_t udp_echo_recv(struct netconn *conn, struct netbuf *buf,
-                           const ip_addr_t *addr, u16_t port) {
-    struct pbuf *q;
-    struct recev_packet recev_packet;
-    uint32_t data_len = 0;
-    struct netbuf *udpbuf;
-
-    /* we perform here any necessary processing on the buf */
-    if (NULL != buf) {
-        for (q = buf->p; q != NULL; q = q->next) {
-            /* if the received data size is larger than the size we want to get
-             */
-            if (q->len > (MAX_BUF_SIZE - data_len)) {
-                /* only copy MAX_BUF_SIZE bytes data */
-                memcpy((recev_packet.bytes + data_len), q->payload,
-                       (MAX_BUF_SIZE - data_len));
-                data_len = MAX_BUF_SIZE;
-            } else {
-                /* copy q->len bytes data */
-                memcpy((recev_packet.bytes + data_len), q->payload, q->len);
-                data_len += q->len;
-            }
-
-            if (data_len >= MAX_BUF_SIZE) {
-                break;
-            }
-        }
-
-        recev_packet.length = data_len;
-
-        udpbuf = netbuf_new();
-        netbuf_ref(udpbuf, recev_packet.bytes, recev_packet.length);
-        netconn_sendto(conn, udpbuf, addr, port);
-
-        netbuf_delete(udpbuf);
-    }
-
-    return ERR_OK;
-}
-
-/*!
-    \brief      udp echo task
-    \param[in]  arg: user supplied argument
-    \param[out] none
-    \retval     none
-*/
-static void udp_task(void *arg) {
-    struct netconn *conn;
-    ip_addr_t ipaddr;
-    struct netbuf *buf;
-    err_t recv_err;
-
-    IP4_ADDR(&ipaddr, IP_S_ADDR0, IP_S_ADDR1, IP_S_ADDR2, IP_S_ADDR3);
-
-    /* creat UDP connection */
-    conn = netconn_new(NETCONN_UDP);
-    netconn_bind(conn, IP_ADDR_ANY, 1025);
-
-    while (1) {
-        recv_err = netconn_recv(conn, &buf);
-        while (ERR_OK == recv_err) {
-            udp_echo_recv(conn, buf, &ipaddr, 1025);
-            netbuf_delete(buf);
-
-            recv_err = netconn_recv(conn, &buf);
-        }
-
-        /* close connection and discard connection identifier */
-        netconn_close(conn);
-        netconn_delete(conn);
-    }
-}
-
-#endif /* ((LWIP_SOCKET == 0) && (LWIP_NETCONN == 1)) */
-
-#if LWIP_SOCKET
 #include "bsp_log.hpp"
 extern Logger Log;
 #include "lwip/sockets.h"
 
-/*!
-    \brief      udp echo task
-    \param[in]  arg: user supplied argument
-    \param[out] none
-    \retval     none
-*/
-static void udp_task(void *arg) {
+UdpTask::UdpTask() : TaskClassS<UDP_TASK_DEPTH>("UdpTask", TaskPrio_Mid) {}
+
+void UdpTask::task() {
     Log.v("UDP", "UDP task start");
     int ret, recvnum, sockfd = -1;
     int udp_port = 1025;
@@ -220,17 +121,4 @@ static void udp_task(void *arg) {
 
         lwip_close(sockfd);
     }
-}
-
-#endif /* LWIP_SOCKET */
-
-/*!
-    \brief      initialize the udp_echo application
-    \param[in]  none
-    \param[out] none
-    \retval     none
-*/
-void udp_echo_init(void) {
-    xTaskCreate(udp_task, "UDP", DEFAULT_THREAD_STACKSIZE, NULL, UDP_TASK_PRIO,
-                NULL);
 }

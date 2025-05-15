@@ -46,6 +46,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "queue.h"
 #include "tcpip.h"
 #include "udp_echo.h"
+#include "enet.h"
 
 extern Logger Log;
 
@@ -53,7 +54,7 @@ EthTask::EthTask() : TaskClassS<ETH_TASK_DEPTH>("EthTask", TaskPrio_Mid) {}
 
 void EthTask::task() {
     /* configure ethernet (GPIOs, clocks, MAC, DMA) */
-    enet_system_setup();
+    Enet::enet_system_setup();
     Log.v("BOOT", "ethernet initialized");
 
     /* initilaize the LwIP stack */

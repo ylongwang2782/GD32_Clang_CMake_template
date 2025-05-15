@@ -9,10 +9,8 @@
 #include "bsp_led.hpp"
 #include "bsp_log.hpp"
 #include "bsp_uid.hpp"
-#include "hello_gigadevice.h"
 #include "netconf.h"
 #include "task.h"
-#include "tcp_client.h"
 #include "udp_echo.h"
 
 UartConfig uart7Conf(uart7_info);

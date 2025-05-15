@@ -37,7 +37,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "FreeRTOS.h"
 #include "gd32f4xx.h"
-#include "gd32f4xx_enet_eval.h"
 #include "stdint.h"
 #include "task.h"
 

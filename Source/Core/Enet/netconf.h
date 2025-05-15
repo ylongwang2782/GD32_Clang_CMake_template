@@ -42,13 +42,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define ETH_TASK_DEPTH 1024
 
-class EthTask : public TaskClassS<ETH_TASK_DEPTH> {
+class EthDevice {
    private:
     struct netif g_mynetif;
 
    public:
-    EthTask();
-    void task() override;
+    void init();
     static void lwip_netif_status_callback(struct netif* netif);
     void lwip_stack_init(void);
 };

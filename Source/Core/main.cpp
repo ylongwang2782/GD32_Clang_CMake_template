@@ -33,9 +33,13 @@ static void InitTask(void* pvParameters) {
     logTask.give();
     Log.v("BOOT", "logTask initialized");
 
-    EthTask ethTask;
-    ethTask.give();
-    Log.v("BOOT", "ethTask initialized");
+    EthDevice ethDevice;
+    ethDevice.init();
+    Log.v("BOOT", "ethDevice initialized");
+
+    UdpTask udpTask;
+    udpTask.give();
+    Log.v("BOOT", "udpTask initialized");
 
     while (1) {
         Log.v("SYS", "heap minimum: %d", xPortGetMinimumEverFreeHeapSize());

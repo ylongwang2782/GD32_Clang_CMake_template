@@ -51,9 +51,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 extern Logger Log;
 
-EthTask::EthTask() : TaskClassS<ETH_TASK_DEPTH>("EthTask", TaskPrio_Mid) {}
-
-void EthTask::task() {
+void EthDevice::init() {
     /* configure ethernet (GPIOs, clocks, MAC, DMA) */
     Enet::enet_system_setup();
     Log.v("BOOT", "ethernet initialized");
@@ -61,24 +59,9 @@ void EthTask::task() {
     /* initilaize the LwIP stack */
     lwip_stack_init();
     Log.v("BOOT", "lwip stack initialized");
-
-    UdpTask udpTask;
-    udpTask.give();
-
-    // send buf test
-    udpTask.send_buf.resize(100);
-    for (int i = 0; i < 100; i++) {
-        udpTask.send_buf[i] = i;
-    }
-    for (;;) {
-        for (int i = 0; i < 100; i++) {
-            udpTask.send_buf[i] = i;
-        }
-        TaskBase::delay(100);
-    }
 }
 
-void EthTask::lwip_netif_status_callback(struct netif *netif) {
+void EthDevice::lwip_netif_status_callback(struct netif *netif) {
     Log.v("NET", "netif status changed: %d", netif->flags);
     // logd addr
     Log.v("NET", "netif addr: %d.%d.%d.%d", ip4_addr1_16(&netif->ip_addr),
@@ -96,7 +79,7 @@ void EthTask::lwip_netif_status_callback(struct netif *netif) {
     \param[out] none
     \retval     none
 */
-void EthTask::lwip_stack_init(void) {
+void EthDevice::lwip_stack_init(void) {
     ip_addr_t ipaddr;
     ip_addr_t netmask;
     ip_addr_t gw;

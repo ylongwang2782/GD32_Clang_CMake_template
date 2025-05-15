@@ -64,7 +64,6 @@ void UdpTask::task() {
     char buf[100];
     u32_t len;
     ip_addr_t ipaddr;
-    std::vector<uint8_t> tx_buffer;
 
     IP4_ADDR(&ipaddr, IP_S_ADDR0, IP_S_ADDR1, IP_S_ADDR2, IP_S_ADDR3);
 
@@ -84,7 +83,7 @@ void UdpTask::task() {
     }
 
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-    
+
     if (sockfd < 0) {
         vTaskDelete(nullptr);
         return;

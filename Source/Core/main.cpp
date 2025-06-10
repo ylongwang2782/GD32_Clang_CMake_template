@@ -9,7 +9,7 @@
 #include "bsp_led.hpp"
 #include "bsp_log.hpp"
 #include "bsp_uid.hpp"
-#include "cx_uwb_test.hpp"
+// #include "cx_uwb_test.hpp"
 #include "dw1000.hpp"
 #include "netconf.h"
 #include "task.h"

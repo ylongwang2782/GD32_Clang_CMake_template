@@ -1,0 +1,34 @@
+name: ✨ 功能改进建议
+description: 提交对现有功能的改进建议
+title: "[Enhancement] 模块名称 - 建议内容"
+labels: [enhancement]
+body:
+  - type: input
+    id: related_module
+    attributes:
+      label: 相关模块
+      placeholder: 如“数据导出”“用户权限”等
+    validations:
+      required: true
+
+  - type: textarea
+    id: current_behavior
+    attributes:
+      label: 当前行为
+      placeholder: 目前功能表现是什么？是否有问题？
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_improvement
+    attributes:
+      label: 建议改进点
+      placeholder: 你希望它如何改进？更人性化？性能更好？
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: 额外信息（可选）
+      placeholder: 有无相关截图、竞品案例、讨论记录等？

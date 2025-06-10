@@ -1,4 +1,5 @@
 add_subdirectory(uwb)
+add_subdirectory(dw1000)
 target_sources(
   ${EXECUTABLE_NAME}
   PRIVATE ./gd32f4xx_it.c

@@ -18,7 +18,11 @@
 
 
 extern spi_parameter_struct spi_init_struct;
-#define DW1000_SPI_Handle SPI3
+// #define DW1000_SPI_Handle dw1000_spi
+
+uint32_t dw1000_spi;
+uint32_t dw1000_spi_nss_port;
+uint32_t dw1000_spi_nss_pin;
 
 // 初始化在main中执行，此处留空
 int openspi(/*SPI_TypeDef* SPIx*/) { return 0; }
@@ -36,22 +40,22 @@ int writetospi(uint16_t headerLength, const uint8_t *headerBuffer,
     decaIrqStatus_t stat;
     stat = decamutexon();
 
-    while (spi_i2s_flag_get(SPI3, SPI_FLAG_TRANS) == SET);
-    gpio_bit_reset(GPIOE, GPIO_PIN_4);
+    while (spi_i2s_flag_get(dw1000_spi, SPI_FLAG_TRANS) == SET);
+    gpio_bit_reset(dw1000_spi_nss_port, dw1000_spi_nss_pin);
 
     for (uint16_t i = 0; i < headerLength; i++) {
-        while (spi_i2s_flag_get(SPI3, SPI_FLAG_TBE) == RESET);
-        spi_i2s_data_transmit(SPI3, headerBuffer[i]);
-        while (spi_i2s_flag_get(SPI3, SPI_FLAG_RBNE) == RESET);
-        (void)spi_i2s_data_receive(SPI3);
+        while (spi_i2s_flag_get(dw1000_spi, SPI_FLAG_TBE) == RESET);
+        spi_i2s_data_transmit(dw1000_spi, headerBuffer[i]);
+        while (spi_i2s_flag_get(dw1000_spi, SPI_FLAG_RBNE) == RESET);
+        (void)spi_i2s_data_receive(dw1000_spi);
     }
     for (uint32_t i = 0; i < bodyLength; i++) {
-        while (spi_i2s_flag_get(SPI3, SPI_FLAG_TBE) == RESET);
-        spi_i2s_data_transmit(SPI3, bodyBuffer[i]);
-        while (spi_i2s_flag_get(SPI3, SPI_FLAG_RBNE) == RESET);
-        (void)spi_i2s_data_receive(SPI3);
+        while (spi_i2s_flag_get(dw1000_spi, SPI_FLAG_TBE) == RESET);
+        spi_i2s_data_transmit(dw1000_spi, bodyBuffer[i]);
+        while (spi_i2s_flag_get(dw1000_spi, SPI_FLAG_RBNE) == RESET);
+        (void)spi_i2s_data_receive(dw1000_spi);
     }
-    gpio_bit_set(GPIOE, GPIO_PIN_4);
+    gpio_bit_set(dw1000_spi_nss_port, dw1000_spi_nss_pin);
     decamutexoff(stat);
     return 0;
 }
@@ -65,22 +69,22 @@ int readfromspi(uint16_t headerLength, const uint8_t *headerBuffer,
     decaIrqStatus_t stat;
     stat = decamutexon();
 
-    while (spi_i2s_flag_get(SPI3, SPI_FLAG_TRANS) == SET);
-    gpio_bit_reset(GPIOE, GPIO_PIN_4);
+    while (spi_i2s_flag_get(dw1000_spi, SPI_FLAG_TRANS) == SET);
+    gpio_bit_reset(dw1000_spi_nss_port, dw1000_spi_nss_pin);
     for (uint16_t i = 0; i < headerLength; i++) {
-        while (spi_i2s_flag_get(SPI3, SPI_FLAG_TBE) == RESET);
-        spi_i2s_data_transmit(SPI3, headerBuffer[i]);
-        while (spi_i2s_flag_get(SPI3, SPI_FLAG_RBNE) == RESET);
-        spi_i2s_data_receive(SPI3);
+        while (spi_i2s_flag_get(dw1000_spi, SPI_FLAG_TBE) == RESET);
+        spi_i2s_data_transmit(dw1000_spi, headerBuffer[i]);
+        while (spi_i2s_flag_get(dw1000_spi, SPI_FLAG_RBNE) == RESET);
+        spi_i2s_data_receive(dw1000_spi);
     }
 
     while (readlength-- > 0) {
-        while (spi_i2s_flag_get(SPI3, SPI_FLAG_TBE) == RESET);
-        spi_i2s_data_transmit(SPI3, 0xFF);
-        while (spi_i2s_flag_get(SPI3, SPI_FLAG_RBNE) == RESET);
-        *readBuffer++ = spi_i2s_data_receive(SPI3);
+        while (spi_i2s_flag_get(dw1000_spi, SPI_FLAG_TBE) == RESET);
+        spi_i2s_data_transmit(dw1000_spi, 0xFF);
+        while (spi_i2s_flag_get(dw1000_spi, SPI_FLAG_RBNE) == RESET);
+        *readBuffer++ = spi_i2s_data_receive(dw1000_spi);
     }
-    gpio_bit_set(GPIOE, GPIO_PIN_4);
+    gpio_bit_set(dw1000_spi_nss_port, dw1000_spi_nss_pin);
     decamutexoff(stat);
     return 0;
 }

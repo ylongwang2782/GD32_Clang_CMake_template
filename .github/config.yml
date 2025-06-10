@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 提交建议或非 Bug 问题
+    url: https://your-docs-or-form.example.com
+    about: 如果你有新需求建议或非 Bug 问题，请在公司文档系统中登记。

@@ -5,9 +5,6 @@
         "llvm-vs-code-extensions.vscode-clangd",
         "xaver.clang-format",
         "marus25.cortex-debug",
-        "mcu-debug.debug-tracker-vscode",
-        "mcu-debug.memory-view",
-        "mcu-debug.peripheral-viewer",
-        "mcu-debug.rtos-views"
+        "usernamehw.errorlens"
     ]
 }

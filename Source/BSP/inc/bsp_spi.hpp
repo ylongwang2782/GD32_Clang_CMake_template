@@ -5,16 +5,11 @@
 #include <vector>
 
 #include "QueueCpp.h"
-#include "TaskCPP.h"
 #include "bsp_gpio.hpp"
-#include "bsp_log.hpp"
 #include "gd32f4xx.h"
 #include "gd32f4xx_misc.h"
 #include "gd32f4xx_spi.h"
 #include "task.h"
-
-#define SPI_TASK_STACK_DEPTH 512
-#define SPI_TASK_PRIORITY    TaskPrio_Mid
 
 typedef struct {
     uint32_t spi_periph;
@@ -197,7 +192,8 @@ class SpiMaster : private SpiDevBase {
               uint8_t nss_index = 0) {
         uint32_t timeout_tick = pdMS_TO_TICKS(timeout_ms);
         uint32_t txcount = 0;
-        nss_low(nss_index);
+        // nss_low(nss_index);
+
         uint32_t tickstart = xTaskGetTickCount();
         while (txcount < tx_data.size()) {
             if (SET == spi_i2s_flag_get(__cfg.spi_periph, SPI_FLAG_TBE)) {
@@ -205,11 +201,81 @@ class SpiMaster : private SpiDevBase {
             }
 
             if (xTaskGetTickCount() - tickstart > timeout_tick) {
-                nss_high(nss_index);
+                // nss_high(nss_index);
+                spi_i2s_data_receive(__cfg.spi_periph);
+
                 return false;
             }
         }
-        nss_high(nss_index);
+        while (SET == spi_i2s_flag_get(__cfg.spi_periph, SPI_STAT_TRANS)) {
+            if (xTaskGetTickCount() - tickstart > timeout_tick) {
+                // nss_high(nss_index);
+                spi_i2s_data_receive(__cfg.spi_periph);
+
+                return false;
+            }
+        }
+        // nss_high(nss_index);
+        spi_i2s_data_receive(__cfg.spi_periph);
+        return true;
+    }
+
+    bool send_open_loop(std::vector<uint8_t> tx_data) {
+        uint32_t txcount = 0;
+        // nss_low();
+        while (txcount < tx_data.size()) {
+            while (RESET == spi_i2s_flag_get(__cfg.spi_periph, SPI_FLAG_TBE));
+            spi_i2s_data_transmit(__cfg.spi_periph, tx_data[txcount++]);
+        }
+        while (SET == spi_i2s_flag_get(__cfg.spi_periph, SPI_STAT_TRANS));
+        spi_i2s_data_receive(__cfg.spi_periph);
+        // nss_high();
+        return true;
+    }
+
+    bool send_open_loop(uint8_t* tx_buffer, uint32_t tx_len) {
+        uint32_t txcount = 0;
+        // nss_low();
+        while (txcount < tx_len) {
+            while (RESET == spi_i2s_flag_get(__cfg.spi_periph, SPI_FLAG_TBE));
+            spi_i2s_data_transmit(__cfg.spi_periph, tx_buffer[txcount++]);
+        }
+        while (SET == spi_i2s_flag_get(__cfg.spi_periph, SPI_STAT_TRANS));
+        spi_i2s_data_receive(__cfg.spi_periph);  
+        // nss_high();
+        return true;
+    }
+
+    bool recv_open_loop(uint32_t rx_len) {
+        uint32_t rxcount = 0;
+        rx_buffer.clear();
+        if (rx_len > rx_buffer.capacity()) {
+            rx_buffer.reserve(rx_len);
+        }
+        while (rxcount < rx_len) {
+            // while(RESET == spi_i2s_flag_get(__cfg.spi_periph, SPI_FLAG_TBE));
+            spi_i2s_data_transmit(__cfg.spi_periph, 0xFF);
+            while (RESET == spi_i2s_flag_get(__cfg.spi_periph, SPI_FLAG_RBNE));
+            rx_buffer.push_back(spi_i2s_data_receive(__cfg.spi_periph));
+            rxcount++;
+        }
+        while (SET == spi_i2s_flag_get(__cfg.spi_periph, SPI_STAT_TRANS));
+        return true;
+    }
+
+    bool recv_open_loop(uint8_t* rx_buffer, uint32_t rx_len,
+                        uint8_t send_data = 0xFF) {
+        uint32_t rxcount = 0;
+        spi_i2s_data_receive(__cfg.spi_periph);
+
+        // uint8_t data=spi_i2s_data_receive(__cfg.spi_periph);
+        while (rxcount < rx_len) {
+            while (RESET == spi_i2s_flag_get(__cfg.spi_periph, SPI_FLAG_TBE));
+            spi_i2s_data_transmit(__cfg.spi_periph, send_data);
+            while (RESET == spi_i2s_flag_get(__cfg.spi_periph, SPI_FLAG_RBNE));
+            rx_buffer[rxcount++] = spi_i2s_data_receive(__cfg.spi_periph);
+        }
+        while (SET == spi_i2s_flag_get(__cfg.spi_periph, SPI_STAT_TRANS));
         return true;
     }
 
@@ -222,7 +288,7 @@ class SpiMaster : private SpiDevBase {
         if (rx_len > rx_buffer.capacity()) {
             rx_buffer.reserve(rx_len);
         }
-        nss_low(nss_index);
+        // nss_low(nss_index);
         uint32_t tickstart = xTaskGetTickCount();
         while (rxcount < rx_len) {
             if (txallowed) {
@@ -235,12 +301,19 @@ class SpiMaster : private SpiDevBase {
                 txallowed = 1;
             }
             if (xTaskGetTickCount() - tickstart > timeout_tick) {
-                nss_high(nss_index);
+                // nss_high(nss_index);
                 return false;
             }
         }
 
-        nss_high(nss_index);
+        while (SET == spi_i2s_flag_get(__cfg.spi_periph, SPI_STAT_TRANS)) {
+            if (xTaskGetTickCount() - tickstart > timeout_tick) {
+                // nss_high(nss_index);
+                return false;
+            }
+        }
+
+        // nss_high(nss_index);
         return true;
     }
     bool send_recv(std::vector<uint8_t> tx_data, uint32_t rx_len,
@@ -255,7 +328,7 @@ class SpiMaster : private SpiDevBase {
             rx_buffer.reserve(rx_len);
         }
 
-        nss_low(nss_index);
+        // nss_low(nss_index);
         uint32_t tickstart = xTaskGetTickCount();
         while ((txcount < tx_size) || (rxcount < rx_len)) {
             if (txallowed) {
@@ -274,16 +347,22 @@ class SpiMaster : private SpiDevBase {
                 txallowed = 1;
             }
             if (rxcount >= rx_len &&
-                SET == spi_i2s_flag_get(__cfg.spi_periph, SPI_STAT_TBE)) {
+                SET == spi_i2s_flag_get(__cfg.spi_periph, SPI_FLAG_TBE)) {
                 txallowed = 1;
             }
 
             if (xTaskGetTickCount() - tickstart > timeout_tick) {
-                nss_high(nss_index);
+                // nss_high(nss_index);
                 return false;
             }
         }
-        nss_high(nss_index);
+        while (SET == spi_i2s_flag_get(__cfg.spi_periph, SPI_STAT_TRANS)) {
+            if (xTaskGetTickCount() - tickstart > timeout_tick) {
+                // nss_high(nss_index);
+                return false;
+            }
+        }
+        // nss_high(nss_index);
         return true;
     }
 };
@@ -440,71 +519,6 @@ class SpiDev : public std::conditional<mode == SpiMode::Master, SpiMaster,
 
    private:
     Spi_IOConfig __cfg;
-};
-
-class SpiTask : public TaskClassS<SPI_TASK_STACK_DEPTH> {
-   private:
-    Logger& Log;
-
-   public:
-    SpiTask(Logger& Log)
-        : TaskClassS<SPI_TASK_STACK_DEPTH>("SpiTask", TaskPrio_Mid), Log(Log) {}
-
-    static void spiCallback(void* arg) {
-        SpiDev<SpiMode::Slave>* dev = (SpiDev<SpiMode::Slave>*)arg;
-        if (!dev->rx_queue.empty_ISR()) {
-            uint8_t rxData;
-            long worken;
-            dev->rx_queue.pop_ISR(rxData, worken);
-            dev->send(&rxData, 1);
-        }
-    }
-
-    void task() override {
-        // Master
-        std::vector<NSS_IO> nss_pins = {
-            {GPIOB, GPIO_PIN_13}    // NSS引脚在PB12
-        };
-
-        SpiDev<SpiMode::Master> spiMaster(SPI1_C1MOSI_C2MISO_B10SCLK_B12NSS,
-                                          nss_pins);
-
-        // Slave
-        SpiDev<SpiMode::Slave> spiSlave(SPI3_E6MOSI_E5MISO_E2SCLK_E11NSS);
-        // spiSlave.enable();
-
-        std::vector<uint8_t> spiSlaveData = {0x01, 0x02, 0x03, 0x04, 0x05,
-                                             0x06, 0x07, 0x08, 0x09};
-        // spi master recv buffer
-        std::vector<uint8_t> spiMasterData = {0x01, 0x02, 0x03, 0x04,
-                                              0x05, 0x06, 0x07, 0x08};
-        std::vector<uint8_t> spiRecvData;
-
-        for (;;) {
-            spiSlave.send(spiSlaveData, 0);    // 等待发送完成
-
-            if (!spiMaster.recv(spiSlaveData.size())) {
-                //    if(!spiMaster.send_recv(spiMasterData,spiSlaveData.size()))
-                //    {
-                Log.d("SPI", "spiMaster send failed.");
-
-            } else {
-                Log.d("SPI", "spiMaster send success.");
-                for (auto data : spiMaster.rx_buffer) {
-                    Log.d("SPI", "spiMaster recv data: %d", data);
-                }
-            }
-
-            while (!spiSlave.rx_queue.empty()) {
-                uint8_t data;
-                spiSlave.rx_queue.pop(data);
-                Log.d("SPI", "spiSlave recv data: %d", data);
-            }
-            // spiRecvData = spiMaster.rx_buffer;
-
-            TaskBase::delay(500);
-        }
-    }
 };
 
 #endif

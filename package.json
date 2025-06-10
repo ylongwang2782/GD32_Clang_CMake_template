@@ -1,8 +1,8 @@
 {
-  "name": "wht",
-  "version": "3.3.8",
+  "name": "GD32_Clang_CMake_template",
+  "version": "1.0.0",
   "private": true,
-  "description": "Wireless Harness Test System",
+  "description": "GD32 cmake gcc clang template",
   "scripts": {
     "release": "standard-version"
   },

@@ -1,0 +1,26 @@
+name: 🚀 新功能需求
+description: 提交新的产品或系统功能建议
+title: "[Feature] 模块名称 - 功能名称"
+labels: [feature, needs-triage]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: 功能概述
+      placeholder: 请简要描述你希望新增什么功能
+    validations:
+      required: true
+
+  - type: textarea
+    id: scenario
+    attributes:
+      label: 使用场景
+      placeholder: 谁会使用它？为什么它有价值？
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggested_solution
+    attributes:
+      label: 建议的解决方案（可选）
+      placeholder: 如果你有实现想法，可以写在这里

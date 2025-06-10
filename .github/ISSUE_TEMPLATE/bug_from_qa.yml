@@ -1,0 +1,71 @@
+name: 🧪 QA Bug 提交
+description: 使用此模板提 Bug
+title: "[Bug] 模块名称 - 简要问题描述"
+labels: [bug, from-QA]
+body:
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 问题优先级
+      options:
+        - P0 - 阻塞测试或影响主功能
+        - P1 - 功能异常但可绕过
+        - P2 - 轻微问题/不影响主流程
+      default: 1
+    validations:
+      required: true
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: 所属模块
+      options:
+        - 主机
+        - 从机
+        - 系统
+        - 其他
+    validations:
+      required: true
+
+  - type: input
+    id: env
+    attributes:
+      label: 测试环境
+      placeholder: 如：版本 v1.2.3，Windows 11 + Chrome 124
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      placeholder: |
+        1. 打开应用
+        2. 点击“提交”
+        3. 程序崩溃
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 预期结果
+      placeholder: 应该成功保存数据，提示“提交成功”
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际结果
+      placeholder: 无响应，控制台报错“null pointer”
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 相关附件（日志/截图/视频）
+      description: 可粘贴日志或截图，也可以上传文件
+      placeholder: 粘贴内容或使用右上角“附件”上传

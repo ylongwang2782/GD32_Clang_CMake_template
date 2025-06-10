@@ -2333,6 +2333,10 @@ void decamutexoff(decaIrqStatus_t s);
  */
 void deca_sleep(unsigned int time_ms);
 
+extern uint32_t dw1000_spi;
+extern uint32_t dw1000_spi_nss_port;
+extern uint32_t dw1000_spi_nss_pin;
+
 #ifdef __cplusplus
 }
 #endif

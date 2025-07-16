@@ -27,13 +27,13 @@ class DW1000 {
     ~DW1000() {}
     bool init() {
         // dw1000_spi = DW1000_SPI;
-        // ³õÊ¼»¯¸´Î»Òı½Å
+        // åˆå§‹åŒ–å¤ä½å¼•è„š
         gpio_mode_set(GPIOE, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE,
                       GPIO_PIN_3);    // RST
         gpio_output_options_set(GPIOE, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ,
                                 GPIO_PIN_3);
-        __spi3_init();         // ³õÊ¼»¯SPI3
-        __hardware_reset();    // ¸´Î»DW1000
+        __spi3_init();         // åˆå§‹åŒ–SPI3
+        __hardware_reset();    // å¤ä½DW1000
 
         // spi_dev = new
         // SpiDev<SpiMode::Master>(SPI3_E6MOSI_E5MISO_E2SCLK_E11NSS,
@@ -72,62 +72,62 @@ class DW1000 {
 
     bool data_transmit(std::vector<uint8_t>& data) {
         if (data.size() == 0) return false;
-        data.push_back(0x00);    // Ìí¼ÓCRCĞ£ÑéÎ»
+        data.push_back(0x00);    // æ·»åŠ CRCæ ¡éªŒä½
         data.push_back(0x00);
-
-        // ·¢ËÍÊı¾İ
+        stop_recv();
+        // å‘é€æ•°æ®
         int ret = __dw1000_send_frame((uint8_t*)data.data(), data.size());
         if (ret != 0) {
-            return false;    // ·¢ËÍÊ§°Ü
+            return false;    // å‘é€å¤±è´¥
         }
-        return true;    // ·¢ËÍ³É¹¦
+        return true;    // å‘é€æˆåŠŸ
     }
 
     bool get_recv_data(std::vector<uint8_t>& rx_data) {
         if (rx_len > 0) {
-            rx_data.resize(rx_len);    // µ÷Õû½ÓÊÕÊı¾İ³¤¶È
+            rx_data.resize(rx_len);    // è°ƒæ•´æ¥æ”¶æ•°æ®é•¿åº¦
             std::copy(rx_buffer, rx_buffer + rx_len, rx_data.begin());
-            rx_len = 0;    // ÖØÖÃ½ÓÊÕ³¤¶È
-            return true;    // ³É¹¦»ñÈ¡½ÓÊÕÊı¾İ
+            rx_len = 0;     // é‡ç½®æ¥æ”¶é•¿åº¦
+            return true;    // æˆåŠŸè·å–æ¥æ”¶æ•°æ®
         }
-        return false;    // Ã»ÓĞ½ÓÊÕµ½Êı¾İ
+        return false;    // æ²¡æœ‰æ¥æ”¶åˆ°æ•°æ®
     }
 
     void update() {
         if (is_init) {
-            __load_recv_data();    // ¼ÓÔØ½ÓÊÕÊı¾İ
+            __load_recv_data();    // åŠ è½½æ¥æ”¶æ•°æ®
         }
     }
     bool set_recv_mode() {
-        // ÉèÖÃ½ÓÊÕÄ£Ê½
+        // è®¾ç½®æ¥æ”¶æ¨¡å¼
         // PA RX mode
         dwt_setgpiovalue(DWT_GxM5, 0);
         dwt_setgpiovalue(DWT_GxM6, DWT_GxP6);
 
-        // Á¢¼´¿ªÊ¼½ÓÊÕ
+        // ç«‹å³å¼€å§‹æ¥æ”¶
         int ret = dwt_rxenable(DWT_START_RX_IMMEDIATE);
         if (ret != 0) {
-            return false;    // ½ÓÊÕÄ£Ê½ÉèÖÃÊ§°Ü
+            return false;    // æ¥æ”¶æ¨¡å¼è®¾ç½®å¤±è´¥
         }
-        return true;    // ½ÓÊÕÄ£Ê½ÉèÖÃ³É¹¦
+        return true;    // æ¥æ”¶æ¨¡å¼è®¾ç½®æˆåŠŸ
     }
 
     bool stop_recv() {
-        // Í£Ö¹½ÓÊÕ
+        // åœæ­¢æ¥æ”¶
         dwt_forcetrxoff();
         return true;
     }
 
    private:
     enum RecvStatus : uint8_t {
-        __Idle = 0,     // ¿ÕÏĞ×´Ì¬
-        __Receiving,    // ½ÓÊÕÖĞ×´Ì¬
-        __Received,     // ÒÑ½ÓÊÕ×´Ì¬
+        __Idle = 0,     // ç©ºé—²çŠ¶æ€
+        __Receiving,    // æ¥æ”¶ä¸­çŠ¶æ€
+        __Received,     // å·²æ¥æ”¶çŠ¶æ€
     };
     RecvStatus recv_status = RecvStatus::__Idle;
-    uint8_t rx_buffer[DW1000_RX_MAX_LEN];    // ½ÓÊÕ»º³åÇø
-    uint16_t rx_len = 0;                     // ½ÓÊÕÊı¾İ³¤¶È
-    bool is_init = false;                    // ³õÊ¼»¯±êÖ¾
+    uint8_t rx_buffer[DW1000_RX_MAX_LEN];    // æ¥æ”¶ç¼“å†²åŒº
+    uint16_t rx_len = 0;                     // æ¥æ”¶æ•°æ®é•¿åº¦
+    bool is_init = false;                    // åˆå§‹åŒ–æ ‡å¿—
 
     // SpiDev<SpiMode::Master>* spi_dev;
     // std::vector<NSS_IO> nss_io = {{GPIOE, GPIO_PIN_4}};
@@ -139,65 +139,67 @@ class DW1000 {
     // };
 
     /**
-     * @brief ½ÓÊÕÒ»Ö¡Êı¾İ
+     * @brief æ¥æ”¶ä¸€å¸§æ•°æ®
      *
-     * @param[out] buffer ½ÓÊÕÊı¾İ»º³åÇøÖ¸Õë
-     * @param[out] length ½ÓÊÕµ½µÄÊµ¼ÊÊı¾İ³¤¶ÈÖ¸Õë
-     * @param[in] max_frame_len ÔÊĞí½ÓÊÕµÄ×î´óÖ¡³¤¶È
+     * @param[out] buffer æ¥æ”¶æ•°æ®ç¼“å†²åŒºæŒ‡é’ˆ
+     * @param[out] length æ¥æ”¶åˆ°çš„å®é™…æ•°æ®é•¿åº¦æŒ‡é’ˆ
+     * @param[in] max_frame_len å…è®¸æ¥æ”¶çš„æœ€å¤§å¸§é•¿åº¦
      *
-     * @retval 0 ½ÓÊÕ³É¹¦
-     * @retval -1 ÊäÈë²ÎÊıÎŞĞ§£¨buffer»òlengthÎª¿Õ£©
-     * @retval -2 ÎŞÊı¾İ½ÓÊÕ
-     * @retval -3 ³¤¶È³¬ÏŞ£¨½ÓÊÕ³¤¶È > max_frame_len£©
-     * @retval -4 ½ÓÊÕ³¬Ê±
-     * @retval -5 ½ÓÊÕ´íÎó
-     * @retval -6 Î´Öª×´Ì¬
+     * @retval 0 æ¥æ”¶æˆåŠŸ
+     * @retval -1 è¾“å…¥å‚æ•°æ— æ•ˆï¼ˆbufferæˆ–lengthä¸ºç©ºï¼‰
+     * @retval -2 æ— æ•°æ®æ¥æ”¶
+     * @retval -3 é•¿åº¦è¶…é™ï¼ˆæ¥æ”¶é•¿åº¦ > max_frame_lenï¼‰
+     * @retval -4 æ¥æ”¶è¶…æ—¶
+     * @retval -5 æ¥æ”¶é”™è¯¯
+     * @retval -6 æœªçŸ¥çŠ¶æ€
      *
-     * @note ½ÓÊÕÇ°»áÇå³ıÏà¹Ø×´Ì¬±êÖ¾Î»£¬½ÓÊÕºó×Ô¶¯¸üĞÂlengthÖµ
+     * @note æ¥æ”¶å‰ä¼šæ¸…é™¤ç›¸å…³çŠ¶æ€æ ‡å¿—ä½ï¼Œæ¥æ”¶åè‡ªåŠ¨æ›´æ–°lengthå€¼
      */
     int __dw1000_receive_frame(uint8_t* buffer, uint16_t* length,
                                uint32_t status) {
         if (buffer == NULL || length == NULL) return -1;
 
-        // ÇåÏà¹Ø±êÖ¾Î»
+        // æ¸…ç›¸å…³æ ‡å¿—ä½
         // dwt_write32bitreg(SYS_STATUS_ID, SYS_STATUS_ALL_RX_GOOD |
         //                                      SYS_STATUS_ALL_RX_ERR |
         //                                      SYS_STATUS_ALL_RX_TO);
 
         if (status & SYS_STATUS_RXFCG) {
-            // »ñÈ¡µ±Ç°Ö¡³¤¶È
+            // è·å–å½“å‰å¸§é•¿åº¦
             uint16_t frame_len =
                 dwt_read32bitreg(RX_FINFO_ID) & RX_FINFO_RXFL_MASK_1023;
             if (frame_len > DW1000_RX_MAX_LEN) {
                 dwt_write32bitreg(SYS_STATUS_ID, SYS_STATUS_RXFCG);
-                return -3;    // ³¤¶È³¬ÏŞ
+                return -3;    // é•¿åº¦è¶…é™
             }
 
             dwt_readrxdata(buffer, frame_len, 0);
             dwt_write32bitreg(SYS_STATUS_ID, SYS_STATUS_RXFCG);
             *length = frame_len;
 
-            return 0;    // ½ÓÊÕ³É¹¦
+            return 0;    // æ¥æ”¶æˆåŠŸ
         } else if (status & SYS_STATUS_ALL_RX_TO) {
             dwt_write32bitreg(SYS_STATUS_ID, SYS_STATUS_ALL_RX_TO);
-            return -4;    // ³¬Ê±
+            return -4;    // è¶…æ—¶
         } else if (status & SYS_STATUS_ALL_RX_ERR) {
             dwt_write32bitreg(SYS_STATUS_ID, SYS_STATUS_ALL_RX_ERR);
-            return -5;    // ½ÓÊÕ´íÎó
+            return -5;    // æ¥æ”¶é”™è¯¯
         }
-        return -6;    // Î´Öª´íÎó
+        return -6;    // æœªçŸ¥é”™è¯¯
     }
 
     void __load_recv_data() {
         switch (recv_status) {
             case RecvStatus::__Idle: {
-                // ÇåÏà¹Ø±êÖ¾Î»
+                // æ¸…ç›¸å…³æ ‡å¿—ä½
                 dwt_write32bitreg(SYS_STATUS_ID, SYS_STATUS_ALL_RX_GOOD |
                                                      SYS_STATUS_ALL_RX_ERR |
                                                      SYS_STATUS_ALL_RX_TO);
-                if(rx_len > 0) {
-                    // Èç¹ûÓĞÎ´´¦ÀíµÄÊı¾İ£¬Ö±½Ó½øÈë½ÓÊÕ×´Ì¬
-                    Log.w("DW1000", "Previous data not processed, entering receiving state.");
+                if (rx_len > 0) {
+                    // å¦‚æœæœ‰æœªå¤„ç†çš„æ•°æ®ï¼Œç›´æ¥è¿›å…¥æ¥æ”¶çŠ¶æ€
+                    Log.w("DW1000",
+                          "Previous data not processed, entering receiving "
+                          "state.");
                 }
                 recv_status = RecvStatus::__Receiving;
                 break;
@@ -207,16 +209,16 @@ class DW1000 {
                 if (!(status & (SYS_STATUS_RXFCG | SYS_STATUS_ALL_RX_ERR |
                                 SYS_STATUS_ALL_RX_TO))) {
                 } else {
-                    // ½ÓÊÕ×´Ì¬£¬³¢ÊÔ¶ÁÈ¡Êı¾İ
+                    // æ¥æ”¶çŠ¶æ€ï¼Œå°è¯•è¯»å–æ•°æ®
                     uint16_t length = 0;
                     int ret =
                         __dw1000_receive_frame(rx_buffer, &length, status);
                     if (ret == 0) {
-                        // ½ÓÊÕ³É¹¦£¬¸üĞÂ×´Ì¬
+                        // æ¥æ”¶æˆåŠŸï¼Œæ›´æ–°çŠ¶æ€
 
-                        rx_len = length - 2;    // ¸üĞÂ½ÓÊÕ³¤¶È
+                        rx_len = length - 2;    // æ›´æ–°æ¥æ”¶é•¿åº¦
                     } else {
-                        // ½ÓÊÕÊ§°Ü£¬ÖØÖÃ×´Ì¬
+                        // æ¥æ”¶å¤±è´¥ï¼Œé‡ç½®çŠ¶æ€
                         rx_len = 0;
                         // Log.e("DW1000", "Receive error: %d", ret);
                     }
@@ -226,30 +228,30 @@ class DW1000 {
             }
 
             case RecvStatus::__Received: {
-                // ÒÑ½ÓÊÕ×´Ì¬£¬´¦ÀíÊı¾İ
+                // å·²æ¥æ”¶çŠ¶æ€ï¼Œå¤„ç†æ•°æ®
                 break;
             }
         }
     }
 
     /**
-     * @brief ·¢ËÍÒ»Ö¡Êı¾İ
+     * @brief å‘é€ä¸€å¸§æ•°æ®
      *
-     * @param[in] tx_data ´ı·¢ËÍÊı¾İÖ¸Õë
-     * @param[in] length ´ı·¢ËÍÊı¾İ³¤¶È
+     * @param[in] tx_data å¾…å‘é€æ•°æ®æŒ‡é’ˆ
+     * @param[in] length å¾…å‘é€æ•°æ®é•¿åº¦
      *
-     * @retval 0 ·¢ËÍ³É¹¦
-     * @retval -1 ÊäÈë²ÎÊıÎŞĞ§£¨tx_dataÎª¿Õ»òlengthÎª0£©
+     * @retval 0 å‘é€æˆåŠŸ
+     * @retval -1 è¾“å…¥å‚æ•°æ— æ•ˆï¼ˆtx_dataä¸ºç©ºæˆ–lengthä¸º0ï¼‰
      *
-     * @note ·¢ËÍÇ°»áÇå³ı·¢ËÍÍê³É±êÖ¾£¬·¢ËÍºó×Ô¶¯¸´Î»×´Ì¬
+     * @note å‘é€å‰ä¼šæ¸…é™¤å‘é€å®Œæˆæ ‡å¿—ï¼Œå‘é€åè‡ªåŠ¨å¤ä½çŠ¶æ€
      */
     int __dw1000_send_frame(uint8_t* tx_data, uint16_t length) {
         if (length == 0 || tx_data == NULL) return -1;
 
-        // Çå³ı·¢ËÍÍê³É±êÖ¾
+        // æ¸…é™¤å‘é€å®Œæˆæ ‡å¿—
         dwt_write32bitreg(SYS_STATUS_ID, SYS_STATUS_TXFRS);
 
-        // Ğ´Èë·¢ËÍÊı¾İ²¢ÉèÖÃ¿ØÖÆ¼Ä´æÆ÷
+        // å†™å…¥å‘é€æ•°æ®å¹¶è®¾ç½®æ§åˆ¶å¯„å­˜å™¨
         dwt_writetxdata(length, tx_data, 0);
         dwt_writetxfctrl(length, 0, 0);
 
@@ -259,15 +261,15 @@ class DW1000 {
 
         dwt_starttx(DWT_START_TX_IMMEDIATE);
 
-        // µÈ´ı·¢ËÍÍê³É
+        // ç­‰å¾…å‘é€å®Œæˆ
         while (!(dwt_read32bitreg(SYS_STATUS_ID) & SYS_STATUS_TXFRS)) {
         }
         DW_DBG
 
-        // Çå³ı·¢ËÍÍê³É±êÖ¾
+        // æ¸…é™¤å‘é€å®Œæˆæ ‡å¿—
         dwt_write32bitreg(SYS_STATUS_ID, SYS_STATUS_TXFRS);
 
-        return 0;    // ³É¹¦
+        return 0;    // æˆåŠŸ
     }
 
     void __spi3_init() {
@@ -330,9 +332,9 @@ class DW1000 {
 
     void __hardware_reset() {
         gpio_bit_reset(GPIOE, GPIO_PIN_3);    // RST
-        TaskBase::delay(10);                  // µÈ´ı10ms
+        TaskBase::delay(10);                  // ç­‰å¾…10ms
         gpio_bit_set(GPIOE, GPIO_PIN_3);      // RST
-        TaskBase::delay(100);                 // µÈ´ı10ms
+        TaskBase::delay(100);                 // ç­‰å¾…10ms
     }
 };
 

@@ -23,7 +23,15 @@ Logger Log(uartLog);
 extern Logger Log;
 
 static void InitTask(void* pvParameters) {
-    // UWB<UwbSpiInterface> uwb;
+
+    UWB<UwbSpiInterface> cx310;
+     DW1000 dw1000;
+if(1){
+
+}else {
+
+}
+    
     // uint32_t myUid = UIDReader::get();
     // Log.d("BOOT", "device ID: %02X", myUid);
     // printf("dwt_initialise");
@@ -42,7 +50,7 @@ static void InitTask(void* pvParameters) {
     // ethTask.give();
     // Log.v("BOOT", "ethTask initialized");
 
-    DW1000 dw1000;
+   
     // taskENTER_CRITICAL();
 
     if (dw1000.init()) {
@@ -54,8 +62,9 @@ static void InitTask(void* pvParameters) {
 
     // Log.v("BOOT", "dw1000 initflag: %d", dw1000.init_succseed);
     std::vector<uint8_t> usr_data = {0x01, 0x02, 0x03, 0x04, 0x05, 0x00, 0x00};
+    dw1000.set_recv_mode();    // 设置接收模式
     while (1) {
-        Log.v("SYS", "heap minimum: %d", xPortGetMinimumEverFreeHeapSize());
+        // Log.v("SYS", "heap minimum: %d", xPortGetMinimumEverFreeHeapSize());
 
         // taskENTER_CRITICAL();
         // if (dw1000.data_transmit(usr_data)) {
@@ -64,14 +73,14 @@ static void InitTask(void* pvParameters) {
         //     Log.w("SYS", "Transmit failed");
         // }
 
-        dw1000.set_recv_mode();    // 设置接收模式
-        dw1000.update();
-
+        
         if (dw1000.get_recv_data(usr_data)) {
             Log.r(usr_data.data(), usr_data.size());
+            dw1000.set_recv_mode();    // 设置接收模式
         }
+        dw1000.update();
         // taskEXIT_CRITICAL();
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(2));
     }
 }
 

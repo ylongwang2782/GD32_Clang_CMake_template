@@ -1,12 +1,4 @@
-add_subdirectory(CMSIS)
+# Driver/CMakeLists.txt
+
+# 添加 GD32F4xx_standard_peripheral 子目录
 add_subdirectory(GD32F4xx_standard_peripheral)
-add_subdirectory(DW1000)
-
-add_library(Drivers INTERFACE)
-
-target_link_libraries(Drivers INTERFACE
-    CMSIS
-    GD32F4xx_standard_peripheral
-    # CX310
-    DW1000
-)

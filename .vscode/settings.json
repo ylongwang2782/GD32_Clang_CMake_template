@@ -3,7 +3,6 @@
     "cmake.generator": "Ninja",
     "cmake.saveBeforeBuild": true,
     "cmake.buildBeforeRun": true,
-    "cmake.parallelJobs": 12,
     "C_Cpp.intelliSenseEngine": "disabled",
     "clangd.arguments": [
         "--clang-tidy",
@@ -11,9 +10,7 @@
         "--log=verbose",
         "--pretty",
         "--ranking-model=heuristics",
-        "-j=12",
         "--query-driver=${env:ARM_CXX_PATH}"
     ],
     "todo-tree.tree.showBadges": false,
-    "marscode.chatLanguage": "cn",
 }

@@ -22,9 +22,9 @@ set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 set(TARGET_FLAGS "-mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard ")
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TARGET_FLAGS}")
-set(CMAKE_C_FLAGS
-    "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic -fdata-sections -ffunction-sections"
-)
+set(CMAKE_C_FLAGS # "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic -fdata-sections
+                  # -ffunction-sections"
+    "${CMAKE_C_FLAGS} -Wpedantic -fdata-sections -ffunction-sections")
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0 -g3")
@@ -35,12 +35,13 @@ if(CMAKE_BUILD_TYPE MATCHES Release)
 endif()
 
 set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS} -x assembler-with-cpp -MMD -MP")
-set(CMAKE_CXX_FLAGS
-    "${CMAKE_C_FLAGS} -fno-rtti -fno-exceptions -fno-threadsafe-statics")
+set(CMAKE_CXX_FLAGS # "${CMAKE_C_FLAGS} -fno-rtti -fno-exceptions
+                    # -fno-threadsafe-statics")
+    "${CMAKE_C_FLAGS} -fno-exceptions -fno-threadsafe-statics")
 
 set(CMAKE_C_LINK_FLAGS "${TARGET_FLAGS}")
 set(CMAKE_C_LINK_FLAGS
-    "${CMAKE_C_LINK_FLAGS} -T \"${CMAKE_SOURCE_DIR}/gd32f4xx_flash.ld\"")
+    "${CMAKE_C_LINK_FLAGS} -T \"${CMAKE_SOURCE_DIR}/gd32f470zi_flash.ld\"")
 set(CMAKE_C_LINK_FLAGS "${CMAKE_C_LINK_FLAGS} --specs=nano.specs")
 set(CMAKE_C_LINK_FLAGS
     "${CMAKE_C_LINK_FLAGS} -Wl,-Map=${CMAKE_PROJECT_NAME}.map -Wl,--gc-sections -Wl,--as-needed"
@@ -52,8 +53,7 @@ set(CMAKE_C_LINK_FLAGS "${CMAKE_C_LINK_FLAGS} -Wl,--print-memory-usage")
 set(CMAKE_CXX_LINK_FLAGS
     "${CMAKE_C_LINK_FLAGS} -Wl,--start-group -lstdc++ -lsupc++ -Wl,--end-group")
 
-# 添加编译指令
-add_compile_options(
-  "$<$<CONFIG:Debug>:-Og;-DDEBUG;-g;-funwind-tables>"
-  "$<$<CONFIG:Release>:-O3;-DNDEBUG>" "$<$<CONFIG:MinSizeRel>:-Os;-DNDEBUG>"
-  "$<$<CONFIG:RelWithDebInfo>:-Os;-g;-DDEBUG>")
+# 添加编译指令 add_compile_options(
+# "$<$<CONFIG:Debug>:-Og;-DDEBUG;-g;-funwind-tables>"
+# "$<$<CONFIG:Release>:-O3;-DNDEBUG>" "$<$<CONFIG:MinSizeRel>:-Os;-DNDEBUG>"
+# "$<$<CONFIG:RelWithDebInfo>:-Os;-g;-DDEBUG>")

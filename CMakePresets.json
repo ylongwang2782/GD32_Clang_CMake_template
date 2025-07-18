@@ -7,27 +7,69 @@
     },
     "configurePresets": [
         {
-            "name": "Debug",
-            "displayName": "Debug",
+            "name": "MasterDebug",
+            "displayName": "MasterDebug",
             "toolchainFile": "${sourceDir}/CMake/arm-none-eabi-gcc.cmake",
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/build",
             "cacheVariables": {
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "true",
-                "CMAKE_BUILD_TYPE": "Debug",
-                "BUILD_VARIANT": "DEBUG"
+                "BUILD_VARIANT": "MASTER_DEBUG"
             }
         },
         {
-            "name": "Release",
-            "displayName": "Release",
+            "name": "MasterRelease",
+            "displayName": "MasterRelease",
             "toolchainFile": "${sourceDir}/CMake/arm-none-eabi-gcc.cmake",
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/build",
             "cacheVariables": {
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "true",
-                "CMAKE_BUILD_TYPE": "Release",
-                "BUILD_VARIANT": "RELEASE"
+                "BUILD_VARIANT": "MASTER_RELEASE"
+            }
+        },
+        {
+            "name": "SlaveDebug",
+            "displayName": "SlaveDebug",
+            "toolchainFile": "${sourceDir}/CMake/arm-none-eabi-gcc.cmake",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "true",
+                "BUILD_VARIANT": "SLAVE_DEBUG"
+            }
+        },
+        {
+            "name": "SlaveRelease",
+            "displayName": "SlaveRelease",
+            "toolchainFile": "${sourceDir}/CMake/arm-none-eabi-gcc.cmake",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "true",
+                "BUILD_VARIANT": "SLAVE_RELEASE"
+            }
+        },
+        {
+            "name": "MasterBoardTest",
+            "displayName": "MasterBoardTest",
+            "toolchainFile": "${sourceDir}/CMake/arm-none-eabi-gcc.cmake",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "true",
+                "BUILD_VARIANT": "MASTER_BOARDTEST"
+            }
+        },
+        {
+            "name": "SlaveBoardTest",
+            "displayName": "SlaveBoardTest",
+            "toolchainFile": "${sourceDir}/CMake/arm-none-eabi-gcc.cmake",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "true",
+                "BUILD_VARIANT": "SLAVE_BOARDTEST"
             }
         }
     ]
